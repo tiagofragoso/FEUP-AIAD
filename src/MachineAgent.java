@@ -10,10 +10,10 @@ import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 
-public class AgentMachine extends Agent {
+public class MachineAgent extends Agent {
 
     private ArrayList<Task> tasks;
-    private PriorityQueue<AgentProduct> products;
+    private PriorityQueue<ProductAgent> products;
 
     protected void setup() {
 

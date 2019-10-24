@@ -2,4 +2,4 @@
 
 # -agents "agent:AgentClass;agent2:Agent2Class;"
 
-java -cp ../jade/lib/jade.jar:out jade.Boot -gui
+java -cp ../jade/lib/jade.jar:../out Jade -gui

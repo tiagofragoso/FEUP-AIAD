@@ -6,7 +6,7 @@ import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
 
-public class jade {
+public class Jade {
     public static void main(String[] args) {
         initJADE();
     }
@@ -31,7 +31,7 @@ public class jade {
 
         for (int i = 0; i < numMachines; i++){
             try {
-                AgentMachine ma = new AgentMachine();
+                MachineAgent ma = new MachineAgent();
                 AgentController ac1 = mainContainer.acceptNewAgent("Machine " + i, ma);
                 ac1.start();
             } catch (StaleProxyException e) {
@@ -41,7 +41,7 @@ public class jade {
 
         for (int i = 0; i < numProducts; i++){
             try {
-                AgentProduct pr = new AgentProduct();
+                ProductAgent pr = new ProductAgent();
                 AgentController ac1 = mainContainer.acceptNewAgent("Product " + i, pr);
                 ac1.start();
             } catch (StaleProxyException e) {

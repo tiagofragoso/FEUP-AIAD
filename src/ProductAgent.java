@@ -2,7 +2,7 @@ import java.util.HashMap;
 
 import jade.core.Agent;
 
-public class AgentProduct extends Agent {
+public class ProductAgent extends Agent {
 
     private HashMap<Task, Integer>  tasks;
     private int priority;

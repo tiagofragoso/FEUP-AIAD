@@ -244,3 +244,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# JADE txt
+*.txt

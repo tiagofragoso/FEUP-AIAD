@@ -41,7 +41,8 @@ public class Jade {
 
         for (int i = 0; i < numProducts; i++){
             try {
-                ProductAgent pr = new ProductAgent();
+                String[] p = { "A", "B", "C" };
+                ProductAgent pr = new ProductAgent(p, 20);
                 AgentController ac1 = mainContainer.acceptNewAgent("Product " + i, pr);
                 ac1.start();
             } catch (StaleProxyException e) {

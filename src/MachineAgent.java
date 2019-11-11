@@ -60,7 +60,8 @@ public class MachineAgent extends Agent {
             if (msg != null) {
                 // CFP Message received. Process it
                 String title = msg.getContent();
-                JOptionPane.showMessageDialog(null, "Machine Received: " + msg.getContent());
+                //JOptionPane.showMessageDialog(null, "Machine Received: " + msg.getContent());
+                System.out.println("Machine Received: " + msg.getContent());
             }
             else {
                 block();

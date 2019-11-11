@@ -10,7 +10,9 @@ import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ProductAgent extends Agent {
     private ArrayList<Pair<Process, Boolean>> processes = new ArrayList<>();
@@ -24,6 +26,10 @@ public class ProductAgent extends Agent {
             );
         }
         this.priority = priority;
+    }
+
+    public ArrayList<Pair<Process, Boolean>> getProcesses() {
+        return this.processes;
     }
     
 
@@ -55,13 +61,19 @@ public class ProductAgent extends Agent {
                  } catch (FIPAException e) {
                      e.printStackTrace();
                  }
-
-                 myAgent.addBehaviour(new MachineRequest());
+                 
+                 myAgent.addBehaviour(new MachineRequest(((ProductAgent)myAgent).getProcesses().get(0).left.getCode()));
              }
          });
     }
 
     private class MachineRequest extends OneShotBehaviour {
+
+        private String task;
+
+        private MachineRequest(String task) {
+            this.task = task;
+        }
 
         public void action() {
             // Send the cfp to all sellers
@@ -69,9 +81,18 @@ public class ProductAgent extends Agent {
             for (int i = 0; i < machines.length; ++i) {
                 msg.addReceiver(machines[i]);
             }
-            msg.setContent(myAgent.getLocalName() + " message");
+            HashMap<String, String> body = new HashMap<String, String>();
+            body.put("task", this.task);
+            try {
+                msg.setContentObject(
+                    new Message(Message.message_type.REQUEST, body)
+                );
+            } catch (IOException e) {
+                System.out.println(e.getStackTrace());
+            }
+            
             msg.setConversationId("task-request");
-            msg.setReplyWith("cfp"+System.currentTimeMillis()); // Unique value
+            //msg.setReplyWith("cfp"+System.currentTimeMillis()); // Unique value
             myAgent.send(msg);
     }
 

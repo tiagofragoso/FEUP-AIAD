@@ -1,11 +1,20 @@
 public class Task {
 
-    private String name;
+    private Process process;
     private int duration;
+    private int start;
+    private int end;
 
-    public Task(String name, int duration) {
-        this.name = name;
+    public Task(Process process, int duration) {
+        this.process = process;
         this.duration = duration;
+    }
+
+    public Task(Process process, int duration, int start, int end) {
+        this.process = process;
+        this.duration = duration;
+        this.start = start;
+        this.end = end;
     }
 
     public int getDuration() {
@@ -16,9 +25,27 @@ public class Task {
         this.duration = duration;
     }
 
-    public String getName() {
-        return name;
+    public int getStart() {
+        return start;
     }
+
+    public int getEnd() {
+        return end;
+    }
+
+    public Process getName() {
+        return process;
+    }
+
+    public void setStart(int start) {
+        this.start = start;
+    }
+
+    public void setEnd(int end) {
+        this.end = end;
+    }
+    
+
 
     
 }

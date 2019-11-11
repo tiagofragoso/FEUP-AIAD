@@ -14,13 +14,10 @@ import javax.swing.*;
 
 public class MachineAgent extends Agent {
 
-    private ArrayList<Task> tasks;
-    private PriorityQueue<ProductAgent> products;
+    private ArrayList<Task> availableProcess = new ArrayList<>();
+    private ArrayList<Pair<Task, ProductAgent>> completeProcesses = new ArrayList<>();
 
     protected void setup() {
-
-        tasks = new ArrayList<>();
-        products = new PriorityQueue<>();
 
         // Register the machine service in the yellow pages
         DFAgentDescription dfd = new DFAgentDescription();
@@ -40,7 +37,7 @@ public class MachineAgent extends Agent {
         System.out.println(this.getName());
         System.out.println("Hi");
 
-        addBehaviour(new Reply());
+        addBehaviour(new ReplyToRequest());
     }
 
     private class ScheduleTask extends CyclicBehaviour {
@@ -53,7 +50,7 @@ public class MachineAgent extends Agent {
         }
     }
 
-    private class Reply extends CyclicBehaviour {
+    private class ReplyToRequest extends CyclicBehaviour {
         public void action() {
             MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
             ACLMessage msg = myAgent.receive(mt);

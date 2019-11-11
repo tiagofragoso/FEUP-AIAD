@@ -16,6 +16,7 @@ import java.util.HashMap;
 
 public class ProductAgent extends Agent {
     private ArrayList<Pair<Process, Boolean>> processes = new ArrayList<>();
+    private ArrayList<Task> completeProcesss = new ArrayList<>();
     private int priority;
     private AID[] machines;
 

@@ -20,8 +20,8 @@ public class Jade {
     }
 
     private static void setup(ContainerController mainContainer) {
-        int numMachines = 1;
-        int numProducts = 1;
+        int numMachines = 2;
+        int numProducts = 2;
 
         try {
             System.out.println(mainContainer.getContainerName());

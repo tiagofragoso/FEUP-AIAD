@@ -32,6 +32,9 @@ public class MachineAgent extends Agent {
     }
 
     public int getLastTime() {
+        if (completeProcesses.isEmpty()) {
+            return 0;
+        }
         return completeProcesses.get(completeProcesses.size()-1).left.getEnd();
     }
 
@@ -71,6 +74,7 @@ public class MachineAgent extends Agent {
 
         System.out.println("This is machine" + this.getName());
         addBehaviour(new ReplyToRequest());
+        addBehaviour(new ScheduleTask());
     }
 
     protected void takeDown() {
@@ -104,6 +108,13 @@ public class MachineAgent extends Agent {
                 if (((MachineAgent)myAgent).availableProcess(process)) {
                     reply.setPerformative(ACLMessage.PROPOSE);
                     body.put("time", Integer.toString(((MachineAgent) myAgent).getLastTime()));
+                    try {
+                        reply.setContentObject(
+                                new Message(Message.message_type.AVAILABE, body)
+                        );
+                    } catch (IOException e) {
+                        System.out.println(e.getStackTrace());
+                    }
                 } else {
                     reply.setPerformative(ACLMessage.REFUSE);
                     reply.setContent("not-available");
@@ -126,7 +137,7 @@ public class MachineAgent extends Agent {
             if (msg != null) {
                 try {
                     process = ((Message) msg.getContentObject()).getBody().get("process");
-                    startTime = Integer.parseInt(((Message) msg.getContentObject()).getBody().get("time"));
+                    startTime = Integer.parseInt(((Message) msg.getContentObject()).getBody().get("start"));
                     name = ((Message) msg.getContentObject()).getBody().get("name");
                 } catch (UnreadableException e) {
                     System.exit(1);

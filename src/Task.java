@@ -10,8 +10,8 @@ public class Task {
         this.duration = duration;
     }
 
-    public Task(Process process, int duration, int start, int end) {
-        this.process = process;
+    public Task(String process, int duration, int start, int end) {
+        this.process = new Process(process);
         this.duration = duration;
         this.start = start;
         this.end = end;
@@ -33,7 +33,7 @@ public class Task {
         return end;
     }
 
-    public Process getName() {
+    public Process getProcess() {
         return process;
     }
 

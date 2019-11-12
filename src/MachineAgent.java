@@ -57,6 +57,13 @@ public class MachineAgent extends Agent {
 
     protected void setup() {
 
+        System.out.println("Created " + this.getLocalName());
+        System.out.print("Process list: ");
+        for (Task task : availableProcesses) {
+            System.out.print(task.getProcess().getCode());
+        }
+        System.out.println();
+
         // Register the machine service in the yellow pages
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.setName(getAID());
@@ -71,8 +78,6 @@ public class MachineAgent extends Agent {
             fe.printStackTrace();
         }
 
-
-        System.out.println("This is machine" + this.getName());
         addBehaviour(new ReplyToRequest());
         addBehaviour(new ScheduleTask());
     }
@@ -102,7 +107,8 @@ public class MachineAgent extends Agent {
                 } catch (UnreadableException e) {
                     System.exit(1);
                 }
-                System.out.println("Machine Received: request for " + process);
+                System.out.println(myAgent.getLocalName() + " received request for " + process +
+                        " from " + msg.getSender().getLocalName());
                 ACLMessage reply = msg.createReply();
 
                 if (((MachineAgent)myAgent).availableProcess(process)) {
@@ -115,11 +121,17 @@ public class MachineAgent extends Agent {
                     } catch (IOException e) {
                         System.out.println(e.getStackTrace());
                     }
+                    System.out.println(myAgent.getLocalName() + " sent message PROPOSE for process " +
+                            process + " with time " + body.get("time") + " to " + msg.getSender().getLocalName());
                 } else {
                     reply.setPerformative(ACLMessage.REFUSE);
                     reply.setContent("not-available");
+
+                    System.out.println(myAgent.getLocalName() + " sent message REFUSE for process " +
+                            process + "to " + reply.getSender().getLocalName());
                 }
                 myAgent.send(reply);
+
             }
             else {
                 block();
@@ -158,6 +170,9 @@ public class MachineAgent extends Agent {
                     } catch (IOException e) {
                         System.out.println(e.getStackTrace());
                     }
+                    System.out.println(myAgent.getLocalName() + " sent message ACCEPT_PROPOSAL for process " +
+                            process + " with start time " + body.get("start") + " and end at " + body.get("end") +
+                            " to " + msg.getSender().getLocalName());
                 } else {
                     body.put("newTime", Integer.toString(((MachineAgent) myAgent).getLastTime()));
                     reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
@@ -168,6 +183,8 @@ public class MachineAgent extends Agent {
                     } catch (IOException e) {
                         System.out.println(e.getStackTrace());
                     }
+                    System.out.println(myAgent.getLocalName() + " sent message REJECT_PROPOSAL for process " +
+                            process + " with new time " + body.get("newTime") + " to " + msg.getSender().getLocalName());
                 }
 
                 myAgent.send(reply);

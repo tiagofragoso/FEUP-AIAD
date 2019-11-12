@@ -111,7 +111,6 @@ public class ProductAgent extends Agent {
 
         private void removeBestMachine () {
             if (!timeResponses.isEmpty()) {
-                System.out.println("Removed " + timeResponses.peek().right.getLocalName());
                 timeResponses.poll();
             }
         }
@@ -154,18 +153,18 @@ public class ProductAgent extends Agent {
             case 1:
                 ACLMessage reply = myAgent.receive(mt);
                 if (reply != null) {
-                    System.out.println("Product " + myAgent.getLocalName() + " received message " + reply.getPerformative());
                     if (reply.getPerformative() == ACLMessage.PROPOSE) {
                         try {
                             int newTime = Integer.parseInt(((Message) reply.getContentObject()).getBody().get("time"));
                             timeResponses.add(new Pair<>(newTime, reply.getSender()));
+                            System.out.println(myAgent.getLocalName() + " received message PROPOSE with time " + newTime +
+                                    " from " + reply.getSender().getLocalName());
                         } catch (UnreadableException e) {
                             System.exit(1);
                         }
                     }
                     replies++;
                     if (replies >= machines.length) {
-                        System.out.println("end step 1 with " + timeResponses.size());
                         step = 2;
                     }
                 } else {
@@ -173,7 +172,6 @@ public class ProductAgent extends Agent {
                 }
                 break;
             case 2:
-                System.out.println("start step 2");
                 ACLMessage timeConfirmation = new ACLMessage(ACLMessage.CONFIRM);
                 body = new HashMap<>();
                 bestTime = getBestTime();
@@ -186,6 +184,7 @@ public class ProductAgent extends Agent {
                 } else {
                     removeBestMachine();
                 }
+
                 timeConfirmation.addReceiver(bestMachine);
 
                 if (bestTime < lastTime) {
@@ -195,6 +194,7 @@ public class ProductAgent extends Agent {
                 }
                 body.put("process", this.process);
                 body.put("name", myAgent.getName());
+
                 try {
                     timeConfirmation.setContentObject(
                             new Message(Message.message_type.CONFIRMATION, body)
@@ -205,15 +205,15 @@ public class ProductAgent extends Agent {
                 timeConfirmation.setConversationId("process-request");
                 timeConfirmation.setReplyWith("confirmation"+System.currentTimeMillis());
                 myAgent.send(timeConfirmation);
+                System.out.println(myAgent.getLocalName() + " sent message CONFIRMATION for process "
+                        + this.process + " with start time " + body.get("start") + " to " + bestMachine.getLocalName());
 
                 mt = MessageTemplate.and(MessageTemplate.MatchConversationId("process-request"),
                         MessageTemplate.MatchInReplyTo(timeConfirmation.getReplyWith()));
 
                 step = 3;
-                System.out.println("end step 2");
                 break;
             case 3:
-                System.out.println("start step 3");
                 reply = myAgent.receive(mt);
                 int startTime = 0, duration = 0;
                 if (reply != null) {
@@ -226,8 +226,11 @@ public class ProductAgent extends Agent {
                             System.exit(1);
                         }
 
-                        System.out.println(myAgent.getName() + "scheduled " + this.process + "on machine " + reply.getSender().getName()
-                        + "starting at " + startTime + "and with duration " + duration);
+                        System.out.println(myAgent.getLocalName() + " received message ACCEPT_PROPOSAL for process " +
+                                this.process + " from " + reply.getSender().getLocalName());
+
+                        System.out.println(myAgent.getLocalName() + " scheduled " + this.process + " on " + reply.getSender().getLocalName()
+                        + " starting at " + startTime + " and with end at " + (startTime+duration));
                         
                         ((ProductAgent) myAgent).completeProcess(this.process);
                         ((ProductAgent) myAgent).addCompleteProcess(this.process, startTime, duration);
@@ -237,23 +240,25 @@ public class ProductAgent extends Agent {
                         int newTime = 0;
                         try {
                             newTime = Integer.parseInt(((Message) reply.getContentObject()).getBody().get("newTime"));
-
                         } catch (UnreadableException e) {
                             System.exit(1);
                         }
 
-                        System.out.println("Product" + myAgent.getLocalName() + "Best time " + getBestTime());
+                        System.out.println(myAgent.getLocalName() + " received message REFUSE_PROPOSAL for process " +
+                                this.process + " from " + reply.getSender().getLocalName() + " with new time " + newTime);
 
                         if (newTime < getBestTime()) {
                             retry = true;
                             retryTime = newTime;
                             retryMachine = reply.getSender();
+                            System.out.println(myAgent.getLocalName() + " retrying with new offer from " + retryMachine.getLocalName());
+                        } else {
+                            System.out.println(myAgent.getLocalName() + " retrying with second best offer with time " + getBestTime());
                         }
 
                         step = 2;
                         break;
                     }
-                    System.out.println("end step 3");
                     step = 4;
                 } else {
                     block();

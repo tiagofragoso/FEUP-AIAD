@@ -97,10 +97,9 @@ public class ProductAgent extends Agent {
         private int lastTime = 0;
         private int step = 0;
         private int replies = 0;
-        private TreeMap<Integer, AID> timeResponses = new TreeMap<>(Collections.reverseOrder());
+        private PriorityQueue<Pair<Integer, AID>> timeResponses = new PriorityQueue<Pair<Integer, AID>>(new TimeComparator());
         private int bestTime = Integer.MAX_VALUE;
         private AID bestMachine = null;
-        private Map.Entry<Integer, AID> bestResponse;
 
         private int retryTime = 0;
         private AID retryMachine = null;
@@ -110,26 +109,25 @@ public class ProductAgent extends Agent {
             this.process = process;
         }
 
-        private void removeBestMachine (AID machine, int time) {
+        private void removeBestMachine () {
             if (!timeResponses.isEmpty()) {
-                System.out.println("Removed " + machine.getLocalName());
-                timeResponses.remove(time, machine);
+                System.out.println("Removed " + timeResponses.peek().right.getLocalName());
+                timeResponses.poll();
             }
         }
 
         private int getBestTime() {
-            return timeResponses.isEmpty() ? Integer.MAX_VALUE : timeResponses.firstKey();
+            return timeResponses.isEmpty() ? Integer.MAX_VALUE : timeResponses.peek().left;
         }
 
         private AID getBestMachine() {
-            return timeResponses.isEmpty() ? null : timeResponses.firstEntry().getValue();
+            return timeResponses.isEmpty() ? null : timeResponses.peek().right;
         }
 
         public void action() {
             lastTime = ((ProductAgent)myAgent).getLastTime();
             switch (step) {
             case 0:
-                System.out.println("start step 0");
                 ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
                 for (int i = 0; i < machines.length; ++i) {
                     msg.addReceiver(machines[i]);
@@ -147,22 +145,20 @@ public class ProductAgent extends Agent {
                 msg.setConversationId("process-request");
                 msg.setReplyWith("cfp"+System.currentTimeMillis()); // Unique value
                 myAgent.send(msg);
+                System.out.println("Product " + myAgent.getLocalName() + " sent message INFORM for process " + this.process);
     
                 mt = MessageTemplate.and(MessageTemplate.MatchConversationId("process-request"),
                         MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
                 step = 1;
-                System.out.println("end step 0");
                 break;
             case 1:
-                System.out.println("start step 1");
                 ACLMessage reply = myAgent.receive(mt);
                 if (reply != null) {
-
+                    System.out.println("Product " + myAgent.getLocalName() + " received message " + reply.getPerformative());
                     if (reply.getPerformative() == ACLMessage.PROPOSE) {
                         try {
                             int newTime = Integer.parseInt(((Message) reply.getContentObject()).getBody().get("time"));
-                            System.out.println(newTime);
-                            timeResponses.put(newTime, reply.getSender());
+                            timeResponses.add(new Pair<>(newTime, reply.getSender()));
                         } catch (UnreadableException e) {
                             System.exit(1);
                         }
@@ -180,17 +176,15 @@ public class ProductAgent extends Agent {
                 System.out.println("start step 2");
                 ACLMessage timeConfirmation = new ACLMessage(ACLMessage.CONFIRM);
                 body = new HashMap<>();
-                bestResponse = timeResponses.firstEntry();
-                if (bestResponse != null) {
-                    bestTime = bestResponse.getKey();
-                    bestMachine = bestResponse.getValue();
-                }
+                bestTime = getBestTime();
+                bestMachine = getBestMachine();
+
                 if (retry) {
                     bestTime = this.retryTime;
                     bestMachine = this.retryMachine;
                     retry = false;
                 } else {
-                    removeBestMachine(bestMachine, bestTime);
+                    removeBestMachine();
                 }
                 timeConfirmation.addReceiver(bestMachine);
 
@@ -273,6 +267,16 @@ public class ProductAgent extends Agent {
                 System.out.println("Attempt failed: " + this.process + " process not available.");
             }**/
             return ((step == 4));
+        }
+
+        class TimeComparator implements Comparator<Pair<Integer, AID>>{
+            public int compare(Pair<Integer, AID> t1, Pair<Integer, AID> t2) {
+                if (t1.left < t2.left)
+                    return 1;
+                else if (t1.left > t2.left)
+                    return -1;
+                return 0;
+            }
         }
 
     }

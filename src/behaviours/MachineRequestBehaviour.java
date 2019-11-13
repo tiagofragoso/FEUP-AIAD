@@ -10,10 +10,7 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import utils.Pair;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.PriorityQueue;
+import java.util.*;
 
 class MachineRequestBehaviour extends Behaviour {
 
@@ -27,6 +24,7 @@ class MachineRequestBehaviour extends Behaviour {
     private AID retryMachine = null;
     private boolean retry = false;
 
+    //TODO: change to Process
     MachineRequestBehaviour(String process) {
         this.process = process;
     }
@@ -150,7 +148,6 @@ class MachineRequestBehaviour extends Behaviour {
 
                 ((ProductAgent) myAgent).completeProcess(this.process);
                 ((ProductAgent) myAgent).addCompleteProcess(this.process, startTime, duration);
-                myAgent.doDelete();
 
             } else if (reply.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
                 int newTime = 0;
@@ -199,6 +196,8 @@ class MachineRequestBehaviour extends Behaviour {
             case 4:
                 retryConfirmation();
                 break;
+            default:
+                break;
         }
     }
 
@@ -213,9 +212,9 @@ class MachineRequestBehaviour extends Behaviour {
     class TimeComparator implements Comparator<Pair<Integer, AID>> {
         public int compare(Pair<Integer, AID> t1, Pair<Integer, AID> t2) {
             if (t1.left < t2.left)
-                return 1;
-            else if (t1.left > t2.left)
                 return -1;
+            else if (t1.left > t2.left)
+                return 1;
             return 0;
         }
     }

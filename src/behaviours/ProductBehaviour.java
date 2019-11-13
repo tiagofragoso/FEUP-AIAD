@@ -1,8 +1,10 @@
 package behaviours;
 
+import agents.Process;
 import agents.ProductAgent;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -12,12 +14,23 @@ import jade.domain.FIPAException;
 import java.util.ArrayList;
 
 public class ProductBehaviour extends TickerBehaviour {
+    private Behaviour currentBehaviour;
+
     public ProductBehaviour(Agent a, int milis) {
         super(a, milis);
     }
 
     @Override
     protected void onTick() {
+        if (((ProductAgent) myAgent).isComplete()) {
+            this.stop();
+            return;
+        }
+
+        if (currentBehaviour != null && !currentBehaviour.done()) return;
+
+        System.out.println("Starting new behaviour");
+
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
         sd.setType("machine");
@@ -35,9 +48,12 @@ public class ProductBehaviour extends TickerBehaviour {
             e.printStackTrace();
         }
 
-        System.out.println(((ProductAgent) myAgent).getProcesses().get(0).left.getCode());
-
-        myAgent.addBehaviour(new MachineRequestBehaviour(((ProductAgent) myAgent).getProcesses().get(0).left.getCode()));
+        Process nextProcess = ((ProductAgent) myAgent).getNextProcess();
+        if (nextProcess != null) {
+            System.out.println("Agent "+ myAgent.getLocalName() + ": Starting request for process " + nextProcess.getCode());
+            currentBehaviour = new MachineRequestBehaviour(nextProcess.getCode());
+            myAgent.addBehaviour(currentBehaviour);
+        }
 
     }
 }

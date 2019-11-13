@@ -35,6 +35,7 @@ public class Jade {
             try {
                 MachineAgent ma = new MachineAgent();
                 ma.addTasK("A", 30);
+                ma.addTasK("B", 30);
                 AgentController ac1 = mainContainer.acceptNewAgent("Machine " + i, ma);
                 ac1.start();
             } catch (StaleProxyException e) {
@@ -44,7 +45,7 @@ public class Jade {
 
         for (int i = 0; i < numProducts; i++) {
             try {
-                String[] p = {"A"};
+                String[] p = {"A", "B"};
                 ProductAgent pr = new ProductAgent(p, 20);
                 AgentController ac1 = mainContainer.acceptNewAgent("Product " + i, pr);
                 ac1.start();

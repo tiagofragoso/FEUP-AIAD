@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class ProductAgent extends Agent {
     private ArrayList<Pair<Process, Boolean>> processes = new ArrayList<>();
-    private ArrayList<Task> completeProcesses = new ArrayList<>();
+    private ArrayList<Task> scheduledProcesses = new ArrayList<>();
     private int priority;
     private ArrayList<AID> machines = new ArrayList<>();
 
@@ -35,14 +35,14 @@ public class ProductAgent extends Agent {
     }
 
     public void addCompleteProcess(String process, int start, int duration) {
-        completeProcesses.add(new Task(process, duration, start, start + duration));
+        scheduledProcesses.add(new Task(process, duration, start, start + duration));
     }
 
     public int getLastTime() {
-        if (completeProcesses.isEmpty()) {
+        if (scheduledProcesses.isEmpty()) {
             return 0;
         } else {
-            return completeProcesses.get(completeProcesses.size() - 1).getEnd();
+            return scheduledProcesses.get(scheduledProcesses.size() - 1).getEnd();
         }
     }
 
@@ -66,5 +66,17 @@ public class ProductAgent extends Agent {
 
 
         addBehaviour(new ProductBehaviour(this, 1000));
+    }
+
+    public boolean isComplete() {
+        return this.processes.size() == this.scheduledProcesses.size();
+    }
+
+    public Process getNextProcess() {
+        for (Pair<Process, Boolean> p: processes) {
+            if (!p.right)
+                return p.left;
+        }
+        return null;
     }
 }

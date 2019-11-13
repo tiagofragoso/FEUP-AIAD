@@ -1,3 +1,5 @@
+package agents;
+
 public class Task {
 
     private Process process;
@@ -29,23 +31,21 @@ public class Task {
         return start;
     }
 
+    public void setStart(int start) {
+        this.start = start;
+    }
+
     public int getEnd() {
         return end;
+    }
+
+    public void setEnd(int end) {
+        this.end = end;
     }
 
     public Process getProcess() {
         return process;
     }
 
-    public void setStart(int start) {
-        this.start = start;
-    }
 
-    public void setEnd(int end) {
-        this.end = end;
-    }
-    
-
-
-    
 }

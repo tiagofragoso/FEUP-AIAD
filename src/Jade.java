@@ -1,3 +1,5 @@
+import agents.MachineAgent;
+import agents.ProductAgent;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
@@ -11,7 +13,7 @@ public class Jade {
         initJADE();
     }
 
-    public static void initJADE(){
+    public static void initJADE() {
         Runtime rt = Runtime.instance();
         Profile p1 = new ProfileImpl();
         ContainerController mainContainer = rt.createMainContainer(p1);
@@ -29,7 +31,7 @@ public class Jade {
             e.printStackTrace();
         }
 
-        for (int i = 0; i < numMachines; i++){
+        for (int i = 0; i < numMachines; i++) {
             try {
                 MachineAgent ma = new MachineAgent();
                 ma.addTasK("A", 30);
@@ -40,9 +42,9 @@ public class Jade {
             }
         }
 
-        for (int i = 0; i < numProducts; i++){
+        for (int i = 0; i < numProducts; i++) {
             try {
-                String[] p = {"A" };
+                String[] p = {"A"};
                 ProductAgent pr = new ProductAgent(p, 20);
                 AgentController ac1 = mainContainer.acceptNewAgent("Product " + i, pr);
                 ac1.start();

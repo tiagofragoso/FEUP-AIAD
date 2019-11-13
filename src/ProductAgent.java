@@ -167,7 +167,6 @@ public class ProductAgent extends Agent {
 
             removeBestMachine();
 
-
             timeConfirmation.addReceiver(bestMachine);
 
             if (bestTime < lastTime) {
@@ -280,8 +279,9 @@ public class ProductAgent extends Agent {
         public boolean done() {
             if (step == 2 && timeResponses.isEmpty()) {
                 System.out.println("Attempt failed: " + this.process + " process not available.");
+                return true;
             }
-            return ((step == 5 || step == 2 && timeResponses.isEmpty()));
+            return (step == 5);
         }
 
         class TimeComparator implements Comparator<Pair<Integer, AID>>{

@@ -165,14 +165,8 @@ public class ProductAgent extends Agent {
             int bestTime = getBestTime();
             AID bestMachine = getBestMachine();
 
-            //TODO adicionar step
-            if (retry) {
-                bestTime = this.retryTime;
-                bestMachine = this.retryMachine;
-                retry = false;
-            } else {
-                removeBestMachine();
-            }
+            removeBestMachine();
+
 
             timeConfirmation.addReceiver(bestMachine);
 
@@ -191,6 +185,23 @@ public class ProductAgent extends Agent {
                     + this.process + " with start time " + body.get("start") + " to " + bestMachine.getLocalName());
 
             mt = Communication.prepareMessageTemplate(timeConfirmation, "process-request");
+            step = 3;
+        }
+
+        private void retryConfirmation() {
+            ACLMessage timeConfirmation = new ACLMessage(ACLMessage.CONFIRM);
+            HashMap<String, String> body = new HashMap<String, String>();
+            timeConfirmation.addReceiver(retryMachine);
+            body.put("start", Integer.toString(retryTime));
+            body.put("process", this.process);
+            body.put("name", myAgent.getName());
+            Communication.prepareMessage(body, timeConfirmation, "process-request", "confirmation"+System.currentTimeMillis());
+            myAgent.send(timeConfirmation);
+            System.out.println(myAgent.getLocalName() + " sent message CONFIRMATION for process "
+                    + this.process + " with start time " + body.get("start") + " to " + retryMachine.getLocalName());
+
+            mt = Communication.prepareMessageTemplate(timeConfirmation, "process-request");
+            step = 3;
         }
 
         private void receiveConfirmation() {
@@ -232,14 +243,15 @@ public class ProductAgent extends Agent {
                         retryTime = newTime;
                         retryMachine = reply.getSender();
                         System.out.println(myAgent.getLocalName() + " retrying with new offer from " + retryMachine.getLocalName());
+                        step = 4;
                     } else {
                         System.out.println(myAgent.getLocalName() + " retrying with second best offer with time " + getBestTime());
+                        step = 2;
                     }
 
-                    step = 2;
                     return;
                 }
-                step = 4;
+                step = 5;
             } else {
                 block();
             }
@@ -255,19 +267,21 @@ public class ProductAgent extends Agent {
                 break;
             case 2:
                 sendConfirmation();
-                step = 3;
                 break;
             case 3:
                 receiveConfirmation();
+                break;
+            case 4:
+                retryConfirmation();
                 break;
             }
         }
 
         public boolean done() {
-            /**if (step == 2 && timeResponses.isEmpty()) {
+            if (step == 2 && timeResponses.isEmpty()) {
                 System.out.println("Attempt failed: " + this.process + " process not available.");
-            }**/
-            return ((step == 4));
+            }
+            return ((step == 5 || step == 2 && timeResponses.isEmpty()));
         }
 
         class TimeComparator implements Comparator<Pair<Integer, AID>>{

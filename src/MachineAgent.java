@@ -122,7 +122,7 @@ public class MachineAgent extends Agent {
                     reply.setContent("not-available");
 
                     System.out.println(myAgent.getLocalName() + " sent message REFUSE for process " +
-                            process + "to " + reply.getSender().getLocalName());
+                            process + " to " + msg.getSender().getLocalName());
                 }
                 myAgent.send(reply);
 
@@ -161,8 +161,8 @@ public class MachineAgent extends Agent {
                     Communication.setBody(body, reply);
 
                     System.out.println(myAgent.getLocalName() + " sent message ACCEPT_PROPOSAL for process " +
-                            process + " with start time " + body.get("start") + " and end at " + body.get("end") +
-                            " to " + msg.getSender().getLocalName());
+                            process + " with start time " + body.get("start") + " and end at " + (Integer.parseInt(body.get("start"))+
+                            getDuration(process)) + " to " + msg.getSender().getLocalName());
                 } else {
                     body.put("newTime", Integer.toString(((MachineAgent) myAgent).getLastTime()));
                     reply.setPerformative(ACLMessage.REJECT_PROPOSAL);

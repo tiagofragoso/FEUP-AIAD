@@ -32,7 +32,7 @@ public class Jade {
         for (int i = 0; i < numMachines; i++){
             try {
                 MachineAgent ma = new MachineAgent();
-                ma.addTasK("A", 30);
+                ma.addTasK("B", 30);
                 AgentController ac1 = mainContainer.acceptNewAgent("Machine " + i, ma);
                 ac1.start();
             } catch (StaleProxyException e) {

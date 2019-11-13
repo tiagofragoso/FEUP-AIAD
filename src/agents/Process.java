@@ -1,6 +1,8 @@
 package agents;
 
-public class Process {
+import java.io.Serializable;
+
+public class Process implements Serializable {
     private String code;
 
     public Process(String code) {
@@ -9,6 +11,11 @@ public class Process {
 
     public String getCode() {
         return this.code;
+    }
+
+    @Override
+    public String toString() {
+        return this.getCode();
     }
 
     @Override

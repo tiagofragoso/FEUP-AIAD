@@ -50,8 +50,8 @@ public class ProductBehaviour extends TickerBehaviour {
 
         Process nextProcess = ((ProductAgent) myAgent).getNextProcess();
         if (nextProcess != null) {
-            System.out.println("Agent "+ myAgent.getLocalName() + ": Starting request for process " + nextProcess.getCode());
-            currentBehaviour = new MachineRequestBehaviour(nextProcess.getCode());
+            System.out.println("Agent " + myAgent.getLocalName() + ": Starting request for process " + nextProcess.getCode());
+            currentBehaviour = new MachineRequestBehaviour(nextProcess);
             myAgent.addBehaviour(currentBehaviour);
         }
 

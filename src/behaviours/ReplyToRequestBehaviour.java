@@ -1,6 +1,8 @@
 package behaviours;
 
 import agents.MachineAgent;
+import agents.Process;
+import agents.Proposal;
 import communication.Communication;
 import communication.Message;
 import jade.core.behaviours.CyclicBehaviour;
@@ -8,17 +10,14 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
-import java.util.HashMap;
-
 public class ReplyToRequestBehaviour extends CyclicBehaviour {
     public void action() {
         MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
         ACLMessage msg = myAgent.receive(mt);
-        String process = null;
-        HashMap<String, String> body = new HashMap<>();
+        Process process = null;
         if (msg != null) {
             try {
-                process = ((Message) msg.getContentObject()).getBody().get("process");
+                process = (Process) ((Message) msg.getContentObject()).getBody().get("process");
             } catch (UnreadableException e) {
                 System.exit(1);
             }
@@ -26,12 +25,16 @@ public class ReplyToRequestBehaviour extends CyclicBehaviour {
                     " from " + msg.getSender().getLocalName());
             ACLMessage reply = msg.createReply();
 
-            if (((MachineAgent) myAgent).availableProcess(process)) {
+            if (((MachineAgent) myAgent).canPerform(process)) {
                 reply.setPerformative(ACLMessage.PROPOSE);
-                body.put("time", Integer.toString(((MachineAgent) myAgent).getLastTime()));
-                Communication.setBody(body, reply);
+                Proposal proposal = new Proposal(myAgent.getAID(), process, ((MachineAgent) myAgent).getEarliestTimeAvailable(), ((MachineAgent) myAgent).getDuration(process));
+
+                Message contentObject = new Message();
+                contentObject.append("proposal", proposal);
+                Communication.setContentObject(contentObject, reply);
+
                 System.out.println(myAgent.getLocalName() + " sent message PROPOSE for process " +
-                        process + " with time " + body.get("time") + " to " + msg.getSender().getLocalName());
+                        process + " with time " + proposal.getMachineEarliestAvailableTime() + " to " + msg.getSender().getLocalName());
             } else {
                 reply.setPerformative(ACLMessage.REFUSE);
                 reply.setContent("not-available");

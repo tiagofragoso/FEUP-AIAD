@@ -4,19 +4,19 @@ public class Task {
 
     private Process process;
     private int duration;
-    private int start;
-    private int end;
+    private int startTime;
+    private int endTime;
 
     public Task(Process process, int duration) {
         this.process = process;
         this.duration = duration;
     }
 
-    public Task(String process, int duration, int start, int end) {
-        this.process = new Process(process);
+    public Task(Process process, int duration, int startTime, int endTime) {
+        this.process = process;
         this.duration = duration;
-        this.start = start;
-        this.end = end;
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 
     public int getDuration() {
@@ -27,20 +27,20 @@ public class Task {
         this.duration = duration;
     }
 
-    public int getStart() {
-        return start;
+    public int getStartTime() {
+        return startTime;
     }
 
-    public void setStart(int start) {
-        this.start = start;
+    public void setStartTime(int startTime) {
+        this.startTime = startTime;
     }
 
-    public int getEnd() {
-        return end;
+    public int getEndTime() {
+        return endTime;
     }
 
-    public void setEnd(int end) {
-        this.end = end;
+    public void setEndTime(int endTime) {
+        this.endTime = endTime;
     }
 
     public Process getProcess() {

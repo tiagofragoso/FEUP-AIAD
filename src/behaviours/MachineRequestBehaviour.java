@@ -1,6 +1,8 @@
 package behaviours;
 
+import agents.Process;
 import agents.ProductAgent;
+import agents.Proposal;
 import communication.Communication;
 import communication.Message;
 import jade.core.AID;
@@ -8,74 +10,71 @@ import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
-import utils.Pair;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 
 class MachineRequestBehaviour extends Behaviour {
 
-    private String process;
-    private MessageTemplate mt;
-    private int step = 0;
+    private Process process;
+    private MessageTemplate currentMessageTemplate;
+    private request_state state = request_state.CALL_FOR_PROPOSALS;
     private int replies = 0;
-    private PriorityQueue<Pair<Integer, AID>> timeResponses = new PriorityQueue<>(new TimeComparator());
+    private PriorityQueue<Proposal> proposals = new PriorityQueue<>(new ProposalComparator());
+    private Proposal currentProposal;
 
-    private int retryTime = 0;
-    private AID retryMachine = null;
-    private boolean retry = false;
-
-    //TODO: change to Process
-    MachineRequestBehaviour(String process) {
+    MachineRequestBehaviour(Process process) {
         this.process = process;
     }
 
-    private void removeBestMachine() {
-        if (!timeResponses.isEmpty()) {
-            timeResponses.poll();
-        }
+    private Proposal peekBestProposal() {
+        return proposals.isEmpty() ? null : proposals.peek();
     }
 
-    private int getBestTime() {
-        return timeResponses.isEmpty() ? Integer.MAX_VALUE : timeResponses.peek().left;
-    }
-
-    private AID getBestMachine() {
-        return timeResponses.isEmpty() ? null : timeResponses.peek().right;
+    private Proposal popBestProposal() {
+        return proposals.isEmpty() ? null : proposals.poll();
     }
 
     private void sendRequests() {
-        HashMap<String, String> body = new HashMap<String, String>();
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        Message contentObject = new Message();
+
         ArrayList<AID> machines = ((ProductAgent) myAgent).getMachines();
-        for (int i = 0; i < machines.size(); ++i) {
-            msg.addReceiver(machines.get(i));
+        for (AID machine : machines) {
+            msg.addReceiver(machine);
         }
-        body.put("process", this.process);
-        Communication.prepareMessage(body, msg, "process-request", "cfp" + System.currentTimeMillis());
+
+        contentObject.append("process", this.process);
+
+        Communication.prepareMessage(contentObject, msg, "process-request", "cfp" + System.currentTimeMillis());
         myAgent.send(msg);
 
         System.out.println("Product " + myAgent.getLocalName() + " sent message INFORM for process " + this.process);
 
-        mt = Communication.prepareMessageTemplate(msg, "process-request");
-        step = 1;
+        currentMessageTemplate = Communication.prepareMessageTemplate(msg, "process-request");
+        state = request_state.RECEIVE_PROPOSALS;
     }
 
     private void receiveProposals() {
-        ACLMessage reply = myAgent.receive(mt);
+        ACLMessage reply = myAgent.receive(currentMessageTemplate);
+
         if (reply != null) {
             if (reply.getPerformative() == ACLMessage.PROPOSE) {
                 try {
-                    int newTime = Integer.parseInt(((Message) reply.getContentObject()).getBody().get("time"));
-                    timeResponses.add(new Pair<>(newTime, reply.getSender()));
-                    System.out.println(myAgent.getLocalName() + " received message PROPOSE with time " + newTime +
+                    Proposal proposal = (Proposal) ((Message) reply.getContentObject()).getBody().get("proposal");
+                    proposals.add(proposal);
+                    System.out.println(myAgent.getLocalName() + " received message PROPOSE with time " + proposal.getMachineEarliestAvailableTime() +
                             " from " + reply.getSender().getLocalName());
                 } catch (UnreadableException e) {
                     System.exit(1);
                 }
             }
+
             replies++;
+
             if (replies >= ((ProductAgent) myAgent).getMachines().size()) {
-                step = 2;
+                state = request_state.ACCEPT_PROPOSAL;
             }
         } else {
             block();
@@ -83,58 +82,36 @@ class MachineRequestBehaviour extends Behaviour {
     }
 
     private void sendConfirmation() {
-        HashMap<String, String> body = new HashMap<String, String>();
-        int lastTime = ((ProductAgent) myAgent).getLastTime();
-        ACLMessage timeConfirmation = new ACLMessage(ACLMessage.CONFIRM);
-        int bestTime = getBestTime();
-        AID bestMachine = getBestMachine();
+        ACLMessage msg = new ACLMessage(ACLMessage.CONFIRM);
+        if (currentProposal == null)
+            currentProposal = popBestProposal();
 
-        removeBestMachine();
+        assert currentProposal != null;
+        msg.addReceiver(currentProposal.getMachine());
+        int startTime = Math.max(((ProductAgent) myAgent).getEarliestTimeAvailable(), currentProposal.getMachineEarliestAvailableTime());
 
-        timeConfirmation.addReceiver(bestMachine);
+        currentProposal.accept(myAgent.getLocalName(), startTime);
 
-        if (bestTime < lastTime) {
-            body.put("start", Integer.toString(lastTime));
-        } else {
-            body.put("start", Integer.toString(bestTime));
-        }
-        body.put("process", this.process);
-        body.put("name", myAgent.getName());
+        Message contentObject = new Message();
+        contentObject.append("proposal", currentProposal);
 
-        Communication.prepareMessage(body, timeConfirmation, "process-request", "confirmation" + System.currentTimeMillis());
-        myAgent.send(timeConfirmation);
+        Communication.prepareMessage(contentObject, msg, "process-request", "confirmation" + System.currentTimeMillis());
+        myAgent.send(msg);
 
         System.out.println(myAgent.getLocalName() + " sent message CONFIRMATION for process "
-                + this.process + " with start time " + body.get("start") + " to " + bestMachine.getLocalName());
+                + this.process + " with start time " + currentProposal.getProductStartTime() + " to " + currentProposal.getMachine().getLocalName());
 
-        mt = Communication.prepareMessageTemplate(timeConfirmation, "process-request");
-        step = 3;
-    }
-
-    private void retryConfirmation() {
-        ACLMessage timeConfirmation = new ACLMessage(ACLMessage.CONFIRM);
-        HashMap<String, String> body = new HashMap<String, String>();
-        timeConfirmation.addReceiver(retryMachine);
-        body.put("start", Integer.toString(retryTime));
-        body.put("process", this.process);
-        body.put("name", myAgent.getName());
-        Communication.prepareMessage(body, timeConfirmation, "process-request", "confirmation" + System.currentTimeMillis());
-        myAgent.send(timeConfirmation);
-        System.out.println(myAgent.getLocalName() + " sent message CONFIRMATION for process "
-                + this.process + " with start time " + body.get("start") + " to " + retryMachine.getLocalName());
-
-        mt = Communication.prepareMessageTemplate(timeConfirmation, "process-request");
-        step = 3;
+        currentMessageTemplate = Communication.prepareMessageTemplate(msg, "process-request");
+        state = request_state.RECEIVE_CONFIRMATION;
     }
 
     private void receiveConfirmation() {
-        ACLMessage reply = myAgent.receive(mt);
-        int startTime = 0, duration = 0;
+        ACLMessage reply = myAgent.receive(currentMessageTemplate);
+        Proposal proposal = null;
         if (reply != null) {
             if (reply.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
                 try {
-                    startTime = Integer.parseInt(((Message) reply.getContentObject()).getBody().get("start"));
-                    duration = Integer.parseInt(((Message) reply.getContentObject()).getBody().get("duration"));
+                    proposal = (Proposal) ((Message) reply.getContentObject()).getBody().get("proposal");
 
                 } catch (UnreadableException e) {
                     System.exit(1);
@@ -143,77 +120,83 @@ class MachineRequestBehaviour extends Behaviour {
                 System.out.println(myAgent.getLocalName() + " received message ACCEPT_PROPOSAL for process " +
                         this.process + " from " + reply.getSender().getLocalName());
 
-                System.out.println(myAgent.getLocalName() + " scheduled " + this.process + " on " + reply.getSender().getLocalName()
-                        + " starting at " + startTime + " and with end at " + (startTime + duration));
 
-                ((ProductAgent) myAgent).completeProcess(this.process);
-                ((ProductAgent) myAgent).addCompleteProcess(this.process, startTime, duration);
+                System.out.println(myAgent.getLocalName() + " scheduled " + this.process + " on " + reply.getSender().getLocalName()
+                        + " starting at " + proposal.getProductStartTime() + " and with end at " + (proposal.getProductStartTime() + proposal.getDuration()));
+
+                if (proposal.equals(currentProposal)) {
+                    ((ProductAgent) myAgent).completeProcess(proposal.getProcess());
+                    ((ProductAgent) myAgent).scheduleProcess(proposal.getProcess(), proposal.getProductStartTime(), proposal.getDuration());
+                }
 
             } else if (reply.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
-                int newTime = 0;
+                Proposal newProposal = null;
                 try {
-                    newTime = Integer.parseInt(((Message) reply.getContentObject()).getBody().get("newTime"));
+                    newProposal = (Proposal) ((Message) reply.getContentObject()).getBody().get("proposal");
                 } catch (UnreadableException e) {
                     System.exit(1);
                 }
 
                 System.out.println(myAgent.getLocalName() + " received message REFUSE_PROPOSAL for process " +
-                        this.process + " from " + reply.getSender().getLocalName() + " with new time " + newTime);
+                        this.process + " from " + reply.getSender().getLocalName() + " with new time " + newProposal.getMachineEarliestAvailableTime());
 
-                if (newTime < getBestTime()) {
-                    retry = true;
-                    retryTime = newTime;
-                    retryMachine = reply.getSender();
-                    System.out.println(myAgent.getLocalName() + " retrying with new offer from " + retryMachine.getLocalName());
-                    step = 4;
+                if (proposals.isEmpty() || computeProposalTime(newProposal) < computeProposalTime(peekBestProposal())) {
+                    currentProposal = newProposal;
+                    System.out.println(myAgent.getLocalName() + " retrying with new offer from " + newProposal.getMachine().getLocalName());
                 } else {
-                    System.out.println(myAgent.getLocalName() + " retrying with second best offer with time " + getBestTime());
-                    step = 2;
+                    currentProposal = null;
+                    System.out.println(myAgent.getLocalName() + " retrying with next best offer ");
                 }
-
+                state = request_state.ACCEPT_PROPOSAL;
                 return;
             }
-            step = 5;
+            state = request_state.DONE;
         } else {
             block();
         }
     }
 
     public void action() {
-        switch (step) {
-            case 0:
+        switch (state) {
+            case CALL_FOR_PROPOSALS:
                 sendRequests();
                 break;
-            case 1:
+            case RECEIVE_PROPOSALS:
                 receiveProposals();
                 break;
-            case 2:
+            case ACCEPT_PROPOSAL:
                 sendConfirmation();
                 break;
-            case 3:
+            case RECEIVE_CONFIRMATION:
                 receiveConfirmation();
                 break;
-            case 4:
-                retryConfirmation();
-                break;
+            case DONE:
             default:
                 break;
         }
     }
 
     public boolean done() {
-        if (step == 2 && timeResponses.isEmpty()) {
+        if (state == request_state.ACCEPT_PROPOSAL && proposals.isEmpty() && currentProposal == null) {
             System.out.println("Attempt failed: " + this.process + " process not available.");
             return true;
         }
-        return (step == 5);
+        return (state == request_state.DONE);
     }
 
-    class TimeComparator implements Comparator<Pair<Integer, AID>> {
-        public int compare(Pair<Integer, AID> t1, Pair<Integer, AID> t2) {
-            if (t1.left < t2.left)
+    private int computeProposalTime(Proposal proposal) {
+        return Math.max(((ProductAgent) myAgent).getEarliestTimeAvailable(), proposal.getMachineEarliestAvailableTime()) + proposal.getDuration();
+    }
+
+    private enum request_state {CALL_FOR_PROPOSALS, RECEIVE_PROPOSALS, ACCEPT_PROPOSAL, RECEIVE_CONFIRMATION, DONE}
+
+    class ProposalComparator implements Comparator<Proposal> {
+        public int compare(Proposal p1, Proposal p2) {
+            int t1 = computeProposalTime(p1);
+            int t2 = computeProposalTime(p2);
+            if (t1 < t2)
                 return -1;
-            else if (t1.left > t2.left)
+            else if (t1 > t2)
                 return 1;
             return 0;
         }

@@ -26,23 +26,23 @@ public class ProductAgent extends Agent {
         return this.processes;
     }
 
-    public void completeProcess(String code) {
-        for (Pair<Process, Boolean> process : processes) {
-            if (process.left.getCode().equals(code)) {
-                process.right = true;
+    public void completeProcess(Process process) {
+        for (Pair<Process, Boolean> pair : processes) {
+            if (pair.left.equals(process)) {
+                pair.right = true;
             }
         }
     }
 
-    public void addCompleteProcess(String process, int start, int duration) {
+    public void scheduleProcess(Process process, int start, int duration) {
         scheduledProcesses.add(new Task(process, duration, start, start + duration));
     }
 
-    public int getLastTime() {
+    public int getEarliestTimeAvailable() {
         if (scheduledProcesses.isEmpty()) {
             return 0;
         } else {
-            return scheduledProcesses.get(scheduledProcesses.size() - 1).getEnd();
+            return scheduledProcesses.get(scheduledProcesses.size() - 1).getEndTime();
         }
     }
 
@@ -73,7 +73,7 @@ public class ProductAgent extends Agent {
     }
 
     public Process getNextProcess() {
-        for (Pair<Process, Boolean> p: processes) {
+        for (Pair<Process, Boolean> p : processes) {
             if (!p.right)
                 return p.left;
         }

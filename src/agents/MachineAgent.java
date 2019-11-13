@@ -14,11 +14,11 @@ import java.util.ArrayList;
 public class MachineAgent extends Agent {
 
     private ArrayList<Task> availableProcesses = new ArrayList<>();
-    private ArrayList<Pair<Task, String>> completeProcesses = new ArrayList<>();
+    private ArrayList<Pair<Task, String>> scheduledProcesses = new ArrayList<>();
 
-    public boolean availableProcess(String code) {
+    public boolean canPerform(Process process) {
         for (Task task : availableProcesses) {
-            if (task.getProcess().getCode().equals(code)) {
+            if (task.getProcess().equals(process)) {
                 return true;
             }
         }
@@ -26,28 +26,28 @@ public class MachineAgent extends Agent {
         return false;
     }
 
-    public int getLastTime() {
-        if (completeProcesses.isEmpty()) {
+    public int getEarliestTimeAvailable() {
+        if (scheduledProcesses.isEmpty()) {
             return 0;
         }
-        return completeProcesses.get(completeProcesses.size() - 1).left.getEnd();
+        return scheduledProcesses.get(scheduledProcesses.size() - 1).left.getEndTime();
     }
 
-    public int getDuration(String code) {
-        for (Task process : availableProcesses) {
-            if (process.getProcess().getCode().equals(code)) {
-                return process.getDuration();
+    public int getDuration(Process process) {
+        for (Task task : availableProcesses) {
+            if (task.getProcess().equals(process)) {
+                return task.getDuration();
             }
         }
         return -1;
     }
 
-    public void addTasK(String code, int duration) {
+    public void addTask(String code, int duration) {
         availableProcesses.add(new Task(new Process(code), duration));
     }
 
-    public void addProcess(String code, int start, int duration, String nameProduct) {
-        completeProcesses.add(new Pair<>(new Task(code, duration, start, start + duration), nameProduct));
+    public void addProcess(Process process, int start, int duration, String nameProduct) {
+        scheduledProcesses.add(new Pair<>(new Task(process, duration, start, start + duration), nameProduct));
     }
 
     protected void setup() {

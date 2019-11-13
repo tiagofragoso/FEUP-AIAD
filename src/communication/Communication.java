@@ -4,12 +4,11 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 public class Communication {
 
-    public static void prepareMessage(HashMap<String, String> body, ACLMessage msg, String conversationId, String value) {
-        setBody(body, msg);
+    public static void prepareMessage(Message contentObject, ACLMessage msg, String conversationId, String value) {
+        setContentObject(contentObject, msg);
         msg.setConversationId(conversationId);
         msg.setReplyWith(value); // Unique value
     }
@@ -19,13 +18,11 @@ public class Communication {
                 MessageTemplate.MatchInReplyTo(msg.getReplyWith()));
     }
 
-    public static void setBody(HashMap<String, String> body, ACLMessage msg) {
+    public static void setContentObject(Message contentObject, ACLMessage msg) {
         try {
-            msg.setContentObject(
-                    new Message(body)
-            );
+            msg.setContentObject(contentObject);
         } catch (IOException e) {
-            System.out.println(e.getStackTrace());
+            e.printStackTrace();
         }
     }
 

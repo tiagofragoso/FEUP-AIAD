@@ -114,13 +114,7 @@ public class MachineAgent extends Agent {
                 if (((MachineAgent)myAgent).availableProcess(process)) {
                     reply.setPerformative(ACLMessage.PROPOSE);
                     body.put("time", Integer.toString(((MachineAgent) myAgent).getLastTime()));
-                    try {
-                        reply.setContentObject(
-                                new Message(Message.message_type.AVAILABE, body)
-                        );
-                    } catch (IOException e) {
-                        System.out.println(e.getStackTrace());
-                    }
+                    Communication.setBody(body, reply);
                     System.out.println(myAgent.getLocalName() + " sent message PROPOSE for process " +
                             process + " with time " + body.get("time") + " to " + msg.getSender().getLocalName());
                 } else {
@@ -163,26 +157,17 @@ public class MachineAgent extends Agent {
                     body.put("start", Integer.toString(startTime));
                     body.put("duration", Integer.toString(duration));
                     reply.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-                    try {
-                        reply.setContentObject(
-                                new Message(Message.message_type.SCHEDULED, body)
-                        );
-                    } catch (IOException e) {
-                        System.out.println(e.getStackTrace());
-                    }
+
+                    Communication.setBody(body, reply);
+
                     System.out.println(myAgent.getLocalName() + " sent message ACCEPT_PROPOSAL for process " +
                             process + " with start time " + body.get("start") + " and end at " + body.get("end") +
                             " to " + msg.getSender().getLocalName());
                 } else {
                     body.put("newTime", Integer.toString(((MachineAgent) myAgent).getLastTime()));
                     reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
-                    try {
-                        reply.setContentObject(
-                                new Message(Message.message_type.NOT_AVAILABLE, body)
-                        );
-                    } catch (IOException e) {
-                        System.out.println(e.getStackTrace());
-                    }
+                    Communication.setBody(body, reply);
+
                     System.out.println(myAgent.getLocalName() + " sent message REJECT_PROPOSAL for process " +
                             process + " with new time " + body.get("newTime") + " to " + msg.getSender().getLocalName());
                 }

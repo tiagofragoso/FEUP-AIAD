@@ -39,8 +39,9 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
         return proposals.isEmpty() ? null : proposals.poll();
     }
 
+    // prepareCFPs
     private void sendRequests() {
-        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        ACLMessage msg = new ACLMessage(ACLMessage.CFP);
         Message contentObject = new Message();
 
         ArrayList<AID> machines = ((ProductAgent) myAgent).getMachines();
@@ -59,6 +60,7 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
         state = request_state.RECEIVE_PROPOSALS;
     }
 
+    // handleAllResponses()
     private void receiveProposals() {
         ACLMessage reply = myAgent.receive(currentMessageTemplate);
 
@@ -86,7 +88,7 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
     }
 
     private void sendConfirmation() {
-        ACLMessage msg = new ACLMessage(ACLMessage.CONFIRM);
+        ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
         if (currentProposal == null)
             currentProposal = popBestProposal();
 
@@ -102,7 +104,7 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
         Communication.prepareMessage(contentObject, msg, "process-request", "confirmation" + System.currentTimeMillis());
         myAgent.send(msg);
 
-        log(Level.WARNING, "[OUT] [CONFIRM] " + currentProposal.in());
+        log(Level.WARNING, "[OUT] [ACCEPT] " + currentProposal.in());
 
         currentMessageTemplate = Communication.prepareMessageTemplate(msg, "process-request");
         state = request_state.RECEIVE_CONFIRMATION;
@@ -112,7 +114,7 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
         ACLMessage reply = myAgent.receive(currentMessageTemplate);
         Proposal proposal = null;
         if (reply != null) {
-            if (reply.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
+            if (reply.getPerformative() == ACLMessage.INFORM) {
                 try {
                     proposal = (Proposal) ((Message) reply.getContentObject()).getBody().get("proposal");
 
@@ -120,7 +122,7 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
                     System.exit(1);
                 }
 
-                log(Level.WARNING, "[IN] [ACCEPT] " + proposal.in());
+                log(Level.WARNING, "[IN] [INFORM] " + proposal.in());
 
                 if (proposal.equals(currentProposal)) {
                     ((ProductAgent) myAgent).completeProcess(proposal.getProcess());
@@ -129,7 +131,7 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
 
                 log(Level.SEVERE, "[SCHEDULE] " + proposal.in());
 
-            } else if (reply.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
+            } else if (reply.getPerformative() == ACLMessage.FAILURE) {
                 Proposal newProposal = null;
                 try {
                     newProposal = (Proposal) ((Message) reply.getContentObject()).getBody().get("proposal");
@@ -137,7 +139,7 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
                     System.exit(1);
                 }
 
-                log(Level.WARNING, "[IN] [REJECT] " + newProposal.in());
+                log(Level.WARNING, "[IN] [FAILURE] " + newProposal.in());
 
                 if (proposals.isEmpty() || computeProposalTime(newProposal) < computeProposalTime(peekBestProposal())) {
                     currentProposal = newProposal;

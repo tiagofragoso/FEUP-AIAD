@@ -15,7 +15,7 @@ import java.util.logging.Level;
 
 public class ScheduleTaskBehaviour extends CyclicBehaviour implements Loggable {
     public void action() {
-        MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CONFIRM);
+        MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
         ACLMessage msg = myAgent.receive(mt);
         Proposal proposal = null;
 
@@ -36,17 +36,17 @@ public class ScheduleTaskBehaviour extends CyclicBehaviour implements Loggable {
 
                 ((MachineAgent) myAgent).addProcess(proposal.getProcess(), proposal.getProductStartTime(), proposal.getDuration(), proposal.getProductName());
 
-                reply.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+                reply.setPerformative(ACLMessage.INFORM);
 
-                log(Level.WARNING, "[OUT] [ACCEPT] " + proposal.out());
+                log(Level.WARNING, "[OUT] [INFORM] " + proposal.out());
 
             } else {
                 proposal.revokeAcceptance();
                 proposal.setMachineEarliestAvailableTime(((MachineAgent) myAgent).getEarliestTimeAvailable());
 
-                reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
+                reply.setPerformative(ACLMessage.FAILURE);
 
-                log(Level.WARNING, "[OUT] [REJECT] " + proposal.out());
+                log(Level.WARNING, "[OUT] [FAILURE] " + proposal.out());
             }
 
             contentObject.append("proposal", proposal);

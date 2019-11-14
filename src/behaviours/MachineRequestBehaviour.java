@@ -10,12 +10,15 @@ import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
+import utils.Loggable;
+import utils.LoggableAgent;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.PriorityQueue;
+import java.util.logging.Level;
 
-class MachineRequestBehaviour extends Behaviour {
+class MachineRequestBehaviour extends Behaviour implements Loggable {
 
     private Process process;
     private MessageTemplate currentMessageTemplate;
@@ -50,7 +53,7 @@ class MachineRequestBehaviour extends Behaviour {
         Communication.prepareMessage(contentObject, msg, "process-request", "cfp" + System.currentTimeMillis());
         myAgent.send(msg);
 
-        System.out.println("Product " + myAgent.getLocalName() + " sent message INFORM for process " + this.process);
+        log(Level.WARNING, "[OUT] [CFP] Process " + this.process);
 
         currentMessageTemplate = Communication.prepareMessageTemplate(msg, "process-request");
         state = request_state.RECEIVE_PROPOSALS;
@@ -64,8 +67,9 @@ class MachineRequestBehaviour extends Behaviour {
                 try {
                     Proposal proposal = (Proposal) ((Message) reply.getContentObject()).getBody().get("proposal");
                     proposals.add(proposal);
-                    System.out.println(myAgent.getLocalName() + " received message PROPOSE with time " + proposal.getMachineEarliestAvailableTime() +
-                            " from " + reply.getSender().getLocalName());
+
+                    log(Level.WARNING, "[IN] [PROPOSE] " + proposal.in());
+
                 } catch (UnreadableException e) {
                     System.exit(1);
                 }
@@ -98,8 +102,7 @@ class MachineRequestBehaviour extends Behaviour {
         Communication.prepareMessage(contentObject, msg, "process-request", "confirmation" + System.currentTimeMillis());
         myAgent.send(msg);
 
-        System.out.println(myAgent.getLocalName() + " sent message CONFIRMATION for process "
-                + this.process + " with start time " + currentProposal.getProductStartTime() + " to " + currentProposal.getMachine().getLocalName());
+        log(Level.WARNING, "[OUT] [CONFIRM] " + currentProposal.in());
 
         currentMessageTemplate = Communication.prepareMessageTemplate(msg, "process-request");
         state = request_state.RECEIVE_CONFIRMATION;
@@ -117,17 +120,14 @@ class MachineRequestBehaviour extends Behaviour {
                     System.exit(1);
                 }
 
-                System.out.println(myAgent.getLocalName() + " received message ACCEPT_PROPOSAL for process " +
-                        this.process + " from " + reply.getSender().getLocalName());
-
-
-                System.out.println(myAgent.getLocalName() + " scheduled " + this.process + " on " + reply.getSender().getLocalName()
-                        + " starting at " + proposal.getProductStartTime() + " and with end at " + (proposal.getProductStartTime() + proposal.getDuration()));
+                log(Level.WARNING, "[IN] [ACCEPT] " + proposal.in());
 
                 if (proposal.equals(currentProposal)) {
                     ((ProductAgent) myAgent).completeProcess(proposal.getProcess());
                     ((ProductAgent) myAgent).scheduleProcess(proposal.getProcess(), proposal.getProductStartTime(), proposal.getDuration());
                 }
+
+                log(Level.SEVERE, "[SCHEDULE] " + proposal.in());
 
             } else if (reply.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
                 Proposal newProposal = null;
@@ -137,15 +137,14 @@ class MachineRequestBehaviour extends Behaviour {
                     System.exit(1);
                 }
 
-                System.out.println(myAgent.getLocalName() + " received message REFUSE_PROPOSAL for process " +
-                        this.process + " from " + reply.getSender().getLocalName() + " with new time " + newProposal.getMachineEarliestAvailableTime());
+                log(Level.WARNING, "[IN] [REJECT] " + newProposal.in());
 
                 if (proposals.isEmpty() || computeProposalTime(newProposal) < computeProposalTime(peekBestProposal())) {
                     currentProposal = newProposal;
-                    System.out.println(myAgent.getLocalName() + " retrying with new offer from " + newProposal.getMachine().getLocalName());
+                    log(Level.WARNING, "[RETRY] " + newProposal.in());
                 } else {
                     currentProposal = null;
-                    System.out.println(myAgent.getLocalName() + " retrying with next best offer ");
+                    log(Level.WARNING, "[FAIL] Accepting next best proposal");
                 }
                 state = request_state.ACCEPT_PROPOSAL;
                 return;
@@ -178,7 +177,7 @@ class MachineRequestBehaviour extends Behaviour {
 
     public boolean done() {
         if (state == request_state.ACCEPT_PROPOSAL && proposals.isEmpty() && currentProposal == null) {
-            System.out.println("Attempt failed: " + this.process + " process not available.");
+            log(Level.SEVERE, "[FAIL] No valid proposals");
             return true;
         }
         return (state == request_state.DONE);
@@ -186,6 +185,11 @@ class MachineRequestBehaviour extends Behaviour {
 
     private int computeProposalTime(Proposal proposal) {
         return Math.max(((ProductAgent) myAgent).getEarliestTimeAvailable(), proposal.getMachineEarliestAvailableTime()) + proposal.getDuration();
+    }
+
+    @Override
+    public void log(Level level, String msg) {
+        ((LoggableAgent)myAgent).log(level, msg);
     }
 
     private enum request_state {CALL_FOR_PROPOSALS, RECEIVE_PROPOSALS, ACCEPT_PROPOSAL, RECEIVE_CONFIRMATION, DONE}

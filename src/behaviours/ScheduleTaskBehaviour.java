@@ -8,8 +8,12 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
+import utils.Loggable;
+import utils.LoggableAgent;
 
-public class ScheduleTaskBehaviour extends CyclicBehaviour {
+import java.util.logging.Level;
+
+public class ScheduleTaskBehaviour extends CyclicBehaviour implements Loggable {
     public void action() {
         MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CONFIRM);
         ACLMessage msg = myAgent.receive(mt);
@@ -34,19 +38,15 @@ public class ScheduleTaskBehaviour extends CyclicBehaviour {
 
                 reply.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
 
-                System.out.println(myAgent.getLocalName() + " sent message ACCEPT_PROPOSAL for process " +
-                        proposal.getProcess() + " with start time " + proposal.getProductStartTime() + " and end at " +
-                        (proposal.getMachineEarliestAvailableTime() + proposal.getDuration()) +
-                        " to " + msg.getSender().getLocalName());
+                log(Level.WARNING, "[OUT] [ACCEPT] " + proposal.out());
+
             } else {
                 proposal.revokeAcceptance();
                 proposal.setMachineEarliestAvailableTime(((MachineAgent) myAgent).getEarliestTimeAvailable());
 
                 reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
 
-                System.out.println(myAgent.getLocalName() + " sent message REJECT_PROPOSAL for process " +
-                        proposal.getProcess() + " with new time " + proposal.getMachineEarliestAvailableTime() +
-                        " to " + msg.getSender().getLocalName());
+                log(Level.WARNING, "[OUT] [REJECT] " + proposal.out());
             }
 
             contentObject.append("proposal", proposal);
@@ -59,5 +59,10 @@ public class ScheduleTaskBehaviour extends CyclicBehaviour {
 
     private boolean proposalWasAccepted(Proposal proposal) {
         return proposal.getProductName() != null && proposal.getProductStartTime() != null;
+    }
+
+    @Override
+    public void log(Level level, String msg) {
+        ((LoggableAgent)myAgent).log(level, msg);
     }
 }

@@ -7,11 +7,13 @@ import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import utils.LoggableAgent;
 import utils.Pair;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
 
-public class MachineAgent extends Agent {
+public class MachineAgent extends LoggableAgent {
 
     private ArrayList<Task> availableProcesses = new ArrayList<>();
     private ArrayList<Pair<Task, String>> scheduledProcesses = new ArrayList<>();
@@ -51,13 +53,18 @@ public class MachineAgent extends Agent {
     }
 
     protected void setup() {
+        this.bootstrapAgent(this);
 
-        System.out.println("Created " + this.getLocalName());
-        System.out.print("agents.Process list: ");
+        log(Level.SEVERE, "Created");
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append("Available processes: ");
         for (Task task : availableProcesses) {
-            System.out.print(task.getProcess().getCode());
+            stringBuilder.append(task.getProcess().getCode());
         }
-        System.out.println();
+
+        log(Level.SEVERE, stringBuilder.toString());
 
         // Register the machine service in the yellow pages
         DFAgentDescription dfd = new DFAgentDescription();
@@ -84,7 +91,7 @@ public class MachineAgent extends Agent {
             fe.printStackTrace();
         }
         // Printout a dismissal message
-        System.out.println("Machine " + getAID().getName() + " terminating.");
+        log(Level.SEVERE, "Terminating");
     }
 }
 

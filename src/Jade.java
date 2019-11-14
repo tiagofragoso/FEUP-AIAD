@@ -7,9 +7,13 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
+import utils.LoggableAgent;
 
 public class Jade {
     public static void main(String[] args) {
+        if (args.length > 0 && args[0].equals("--verbose")) {
+            LoggableAgent.severeOnly = false;
+        }
         initJADE();
     }
 

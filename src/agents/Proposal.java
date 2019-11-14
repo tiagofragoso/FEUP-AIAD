@@ -49,6 +49,10 @@ public class Proposal implements Serializable {
         return productName;
     }
 
+    private boolean isAccepted() {
+        return this.productName != null && this.productStartTime != null;
+    }
+
     public void accept(String productName, int productStartTime) {
         this.productName = productName;
         this.productStartTime = productStartTime;
@@ -71,4 +75,18 @@ public class Proposal implements Serializable {
                 Objects.equals(productName, proposal.productName);
     }
 
+    public String in() {
+        return "Proposal from " + this.machine.getLocalName() + " " + this;
+    }
+
+    public String out() {
+        return "Proposal " + this;
+    }
+
+    @Override
+    public String toString() {
+        return "for " + this.process + ": Prop. Start: " + this.getMachineEarliestAvailableTime() + " | Duration: "
+            + this.duration + (isAccepted() ? (" | Accepted by " + this.productName + " | Start: " + this.productStartTime
+            + " | End: " + (this.productStartTime + this.duration) ) : "") ;
+    }
 }

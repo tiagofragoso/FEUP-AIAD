@@ -2,12 +2,13 @@ package agents;
 
 import behaviours.ProductBehaviour;
 import jade.core.AID;
-import jade.core.Agent;
+import utils.LoggableAgent;
 import utils.Pair;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
 
-public class ProductAgent extends Agent {
+public class ProductAgent extends LoggableAgent {
     private ArrayList<Pair<Process, Boolean>> processes = new ArrayList<>();
     private ArrayList<Task> scheduledProcesses = new ArrayList<>();
     private int priority;
@@ -55,15 +56,18 @@ public class ProductAgent extends Agent {
     }
 
     protected void setup() {
+        this.bootstrapAgent(this);
 
         // Logging
-        System.out.println("Created " + this.getLocalName());
-        System.out.print("agents.Process list: ");
-        for (Pair<Process, Boolean> process : processes) {
-            System.out.print(process.left.getCode());
-        }
-        System.out.println();
+        log(Level.SEVERE,"Created");
 
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Process sequence: ");
+        for (Pair<Process, Boolean> process : processes) {
+            stringBuilder.append(process.left.getCode());
+        }
+
+        log(Level.SEVERE, stringBuilder.toString());
 
         addBehaviour(new ProductBehaviour(this, 1000));
     }

@@ -10,10 +10,13 @@ import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import utils.Loggable;
+import utils.LoggableAgent;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
 
-public class ProductBehaviour extends TickerBehaviour {
+public class ProductBehaviour extends TickerBehaviour implements Loggable {
     private Behaviour currentBehaviour;
 
     public ProductBehaviour(Agent a, int milis) {
@@ -29,8 +32,6 @@ public class ProductBehaviour extends TickerBehaviour {
 
         if (currentBehaviour != null && !currentBehaviour.done()) return;
 
-        System.out.println("Starting new behaviour");
-
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription sd = new ServiceDescription();
         sd.setType("machine");
@@ -38,7 +39,6 @@ public class ProductBehaviour extends TickerBehaviour {
         try {
             DFAgentDescription[] results = DFService.search(myAgent, template);
 
-            System.out.println("Search returns for " + myAgent.getAID().getName() + " : " + results.length + " elements");
             ArrayList<AID> machines = new ArrayList<>();
             for (DFAgentDescription result : results) {
                 machines.add(result.getName());
@@ -50,10 +50,15 @@ public class ProductBehaviour extends TickerBehaviour {
 
         Process nextProcess = ((ProductAgent) myAgent).getNextProcess();
         if (nextProcess != null) {
-            System.out.println("Agent " + myAgent.getLocalName() + ": Starting request for process " + nextProcess.getCode());
+            log(Level.SEVERE, "[START] CFP for " + nextProcess);
             currentBehaviour = new MachineRequestBehaviour(nextProcess);
             myAgent.addBehaviour(currentBehaviour);
         }
 
+    }
+
+    @Override
+    public void log(Level level, String msg) {
+        ((LoggableAgent)myAgent).log(level, msg);
     }
 }

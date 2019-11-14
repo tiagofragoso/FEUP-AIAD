@@ -9,8 +9,12 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
+import utils.Loggable;
+import utils.LoggableAgent;
 
-public class ReplyToRequestBehaviour extends CyclicBehaviour {
+import java.util.logging.Level;
+
+public class ReplyToRequestBehaviour extends CyclicBehaviour implements Loggable {
     public void action() {
         MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.INFORM);
         ACLMessage msg = myAgent.receive(mt);
@@ -21,8 +25,8 @@ public class ReplyToRequestBehaviour extends CyclicBehaviour {
             } catch (UnreadableException e) {
                 System.exit(1);
             }
-            System.out.println(myAgent.getLocalName() + " received request for " + process +
-                    " from " + msg.getSender().getLocalName());
+
+            log(Level.WARNING, "[IN] [CFP] From: " + msg.getSender().getLocalName() + " | Process: " + process);
             ACLMessage reply = msg.createReply();
 
             if (((MachineAgent) myAgent).canPerform(process)) {
@@ -33,19 +37,23 @@ public class ReplyToRequestBehaviour extends CyclicBehaviour {
                 contentObject.append("proposal", proposal);
                 Communication.setContentObject(contentObject, reply);
 
-                System.out.println(myAgent.getLocalName() + " sent message PROPOSE for process " +
-                        process + " with time " + proposal.getMachineEarliestAvailableTime() + " to " + msg.getSender().getLocalName());
+                log(Level.WARNING, "[OUT] [PROPOSE] " + proposal.out());
+
             } else {
                 reply.setPerformative(ACLMessage.REFUSE);
                 reply.setContent("not-available");
 
-                System.out.println(myAgent.getLocalName() + " sent message REFUSE for process " +
-                        process + " to " + msg.getSender().getLocalName());
+                log(Level.WARNING, "[OUT] [REFUSE] " + "Process " + process);
             }
             myAgent.send(reply);
 
         } else {
             block();
         }
+    }
+
+    @Override
+    public void log(Level level, String msg) {
+        ((LoggableAgent)myAgent).log(level, msg);
     }
 }

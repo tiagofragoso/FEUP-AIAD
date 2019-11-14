@@ -2,7 +2,6 @@ package agents;
 
 import behaviours.ReplyToRequestBehaviour;
 import behaviours.ScheduleTaskBehaviour;
-import jade.core.Agent;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -11,12 +10,20 @@ import utils.LoggableAgent;
 import utils.Pair;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.logging.Level;
 
 public class MachineAgent extends LoggableAgent {
 
     private ArrayList<Task> availableProcesses = new ArrayList<>();
     private ArrayList<Pair<Task, String>> scheduledProcesses = new ArrayList<>();
+
+    public MachineAgent() {
+    }
+
+    public MachineAgent(HashMap<String, Integer> processes) {
+        processes.forEach((p, t) -> availableProcesses.add(new Task(new Process(p), t)));
+    }
 
     public boolean canPerform(Process process) {
         for (Task task : availableProcesses) {

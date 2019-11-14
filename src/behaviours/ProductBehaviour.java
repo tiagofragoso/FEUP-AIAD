@@ -59,6 +59,6 @@ public class ProductBehaviour extends TickerBehaviour implements Loggable {
 
     @Override
     public void log(Level level, String msg) {
-        ((LoggableAgent)myAgent).log(level, msg);
+        ((LoggableAgent) myAgent).log(level, msg);
     }
 }

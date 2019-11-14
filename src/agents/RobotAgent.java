@@ -8,6 +8,7 @@ public class RobotAgent {
 
     private int velocity;
     private ArrayList<Journey> scheduledJourneys;
+    private Point startingPoint;
 
     public int getVelocity() {
         return velocity;
@@ -32,6 +33,4 @@ public class RobotAgent {
     public void setStartingPoint(Point startingPoint) {
         this.startingPoint = startingPoint;
     }
-
-    private Point startingPoint;
 }

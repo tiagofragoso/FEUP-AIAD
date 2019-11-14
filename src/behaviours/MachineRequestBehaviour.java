@@ -191,7 +191,7 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
 
     @Override
     public void log(Level level, String msg) {
-        ((LoggableAgent)myAgent).log(level, msg);
+        ((LoggableAgent) myAgent).log(level, msg);
     }
 
     private enum request_state {CALL_FOR_PROPOSALS, RECEIVE_PROPOSALS, ACCEPT_PROPOSAL, RECEIVE_CONFIRMATION, DONE}

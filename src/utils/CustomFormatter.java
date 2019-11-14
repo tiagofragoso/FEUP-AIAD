@@ -1,17 +1,17 @@
 package utils;
 
 
-import jade.core.AID;
 import jade.core.Agent;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.*;
+import java.util.logging.Formatter;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
 
 public class CustomFormatter extends Formatter {
-    // Create a DateFormat to format the logger timestamp.
-    private static final DateFormat df = new SimpleDateFormat("hh:mm:ss.SSS");
     // ANSI escape code
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_BLACK = "\u001B[30m";
@@ -22,7 +22,8 @@ public class CustomFormatter extends Formatter {
     public static final String ANSI_PURPLE = "\u001B[35m";
     public static final String ANSI_CYAN = "\u001B[36m";
     public static final String ANSI_WHITE = "\u001B[37m";
-
+    // Create a DateFormat to format the logger timestamp.
+    private static final DateFormat df = new SimpleDateFormat("hh:mm:ss.SSS");
     private Agent agent;
 
     CustomFormatter(Agent agent) {
@@ -41,7 +42,7 @@ public class CustomFormatter extends Formatter {
     }
 
     private String levelColor(Level level) {
-        if(level.equals(Level.INFO)) {
+        if (level.equals(Level.INFO)) {
             return ANSI_BLUE;
         }
 
@@ -49,11 +50,11 @@ public class CustomFormatter extends Formatter {
             return ANSI_YELLOW;
         }
 
-        if(level.equals(Level.FINE)) {
+        if (level.equals(Level.FINE)) {
             return ANSI_GREEN;
         }
 
-        if(level.equals(Level.SEVERE)) {
+        if (level.equals(Level.SEVERE)) {
             return ANSI_RED;
         }
 

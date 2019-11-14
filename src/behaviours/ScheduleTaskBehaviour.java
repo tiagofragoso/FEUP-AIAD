@@ -63,6 +63,6 @@ public class ScheduleTaskBehaviour extends CyclicBehaviour implements Loggable {
 
     @Override
     public void log(Level level, String msg) {
-        ((LoggableAgent)myAgent).log(level, msg);
+        ((LoggableAgent) myAgent).log(level, msg);
     }
 }

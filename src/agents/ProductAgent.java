@@ -59,7 +59,7 @@ public class ProductAgent extends LoggableAgent {
         this.bootstrapAgent(this);
 
         // Logging
-        log(Level.SEVERE,"Created");
+        log(Level.SEVERE, "Created");
 
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Process sequence: ");

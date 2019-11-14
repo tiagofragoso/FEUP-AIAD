@@ -86,7 +86,7 @@ public class Proposal implements Serializable {
     @Override
     public String toString() {
         return "for " + this.process + ": Prop. Start: " + this.getMachineEarliestAvailableTime() + " | Duration: "
-            + this.duration + (isAccepted() ? (" | Accepted by " + this.productName + " | Start: " + this.productStartTime
-            + " | End: " + (this.productStartTime + this.duration) ) : "") ;
+                + this.duration + (isAccepted() ? (" | Accepted by " + this.productName + " | Start: " + this.productStartTime
+                + " | End: " + (this.productStartTime + this.duration)) : "");
     }
 }

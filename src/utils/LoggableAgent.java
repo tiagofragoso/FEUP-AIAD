@@ -6,7 +6,7 @@ import jade.util.Logger;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 
-public class LoggableAgent extends Agent {
+public abstract class LoggableAgent extends Agent implements Printable {
     public static boolean severeOnly = true;
     private Logger logger;
 

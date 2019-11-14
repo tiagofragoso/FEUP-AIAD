@@ -4,6 +4,7 @@ import behaviours.ProductBehaviour;
 import jade.core.AID;
 import utils.LoggableAgent;
 import utils.Pair;
+import utils.Table;
 
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -56,6 +57,9 @@ public class ProductAgent extends LoggableAgent {
     }
 
     protected void setup() {
+
+        addShutdownHook();
+
         this.bootstrapAgent(this);
 
         // Logging
@@ -82,5 +86,22 @@ public class ProductAgent extends LoggableAgent {
                 return p.left;
         }
         return null;
+    }
+
+    private void addShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(this::printSchedule));
+    }
+
+    @Override
+    public void printSchedule() {
+        synchronized (System.out) {
+            System.out.println("PRODUCT: " + this.getLocalName());
+            Table table = new Table(new String[]{"Time", "Process", "Machine"}, 15);
+            for (Task t: this.scheduledProcesses) {
+                Object[] row = new Object[] {t.getStartTime()+"-"+t.getEndTime(), t.getProcess(), "Machine X"};
+                table.addRow(row);
+            }
+            table.print();
+        }
     }
 }

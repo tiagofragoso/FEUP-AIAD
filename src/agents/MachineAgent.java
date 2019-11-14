@@ -8,6 +8,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import utils.LoggableAgent;
 import utils.Pair;
+import utils.Table;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,11 +56,13 @@ public class MachineAgent extends LoggableAgent {
         availableProcesses.add(new Task(new Process(code), duration));
     }
 
-    public void addProcess(Process process, int start, int duration, String nameProduct) {
-        scheduledProcesses.add(new Pair<>(new Task(process, duration, start, start + duration), nameProduct));
+    public void addProcess(Process process, int start, int duration, String productName) {
+        scheduledProcesses.add(new Pair<>(new Task(process, duration, start, start + duration), productName));
     }
 
     protected void setup() {
+        addShutdownHook();
+
         this.bootstrapAgent(this);
 
         log(Level.SEVERE, "Created");
@@ -90,6 +93,10 @@ public class MachineAgent extends LoggableAgent {
         addBehaviour(new ScheduleTaskBehaviour());
     }
 
+    private void addShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(this::printSchedule));
+    }
+
     protected void takeDown() {
         // Deregister from the yellow pages
         try {
@@ -99,6 +106,21 @@ public class MachineAgent extends LoggableAgent {
         }
         // Printout a dismissal message
         log(Level.SEVERE, "Terminating");
+    }
+
+    @Override
+    public void printSchedule() {
+        synchronized (System.out) {
+            System.out.println("MACHINE: " + this.getLocalName());
+            Table table = new Table(new String[]{"Time", "Process", "Product"}, 15);
+            for (Pair<Task, String> pair: this.scheduledProcesses) {
+                Task t = pair.left;
+                String productName = pair.right;
+                Object[] row = new Object[] {t.getStartTime()+"-"+t.getEndTime(), t.getProcess(), productName};
+                table.addRow(row);
+            }
+            table.print();
+        }
     }
 }
 

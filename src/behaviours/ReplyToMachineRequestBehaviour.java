@@ -14,7 +14,7 @@ import utils.LoggableAgent;
 
 import java.util.logging.Level;
 
-public class ReplyToRequestBehaviour extends CyclicBehaviour implements Loggable {
+public class ReplyToMachineRequestBehaviour extends CyclicBehaviour implements Loggable {
     public void action() {
         MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CFP);
         ACLMessage msg = myAgent.receive(mt);
@@ -23,7 +23,8 @@ public class ReplyToRequestBehaviour extends CyclicBehaviour implements Loggable
             try {
                 process = (Process) ((Message) msg.getContentObject()).getBody().get("process");
             } catch (UnreadableException e) {
-                System.exit(1);
+                e.printStackTrace();
+                return;
             }
 
             log(Level.WARNING, "[IN] [CFP] From: " + msg.getSender().getLocalName() + " | Process: " + process);

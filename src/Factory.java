@@ -1,5 +1,6 @@
 import agents.MachineAgent;
 import agents.ProductAgent;
+import agents.RobotAgent;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
@@ -34,8 +35,9 @@ public class Factory {
     }
 
     private static void setup(ContainerController mainContainer) {
-        int numMachines = 2;
-        int numProducts = 2;
+        int numMachines = 1;
+        int numProducts = 1;
+        int numRobots = 1;
 
         try {
             System.out.println(mainContainer.getContainerName());
@@ -43,9 +45,20 @@ public class Factory {
             e.printStackTrace();
         }
 
+        for (int i = 0; i < numRobots; i++) {
+            try {
+                RobotAgent ra = new RobotAgent();
+                ra.setStartingPoint(new Point(10, 10));
+                AgentController ac1 = mainContainer.acceptNewAgent("Robot " + i, ra);
+                ac1.start();
+            } catch (StaleProxyException e) {
+                e.printStackTrace();
+            }
+        }
+
         for (int i = 0; i < numMachines; i++) {
             try {
-                MachineAgent ma = new MachineAgent();
+                MachineAgent ma = new MachineAgent(new Point(15, 5));
                 ma.addAvailableProcess("A", 30);
                 ma.addAvailableProcess("B", 30);
                 AgentController ac1 = mainContainer.acceptNewAgent("Machine " + i, ma);

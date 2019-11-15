@@ -6,13 +6,22 @@ import utils.Point;
 public class Journey extends Job {
 
     private Point startPoint;
-    private Point endPoint;
-    private int duration;
-    private MachineAgent startMachine;
-    private MachineAgent endMachine;
+    private Point pickupPoint;
+    private Point dropoffPoint;
+    private int pickupTime;
+    private int journeyDuration;
 
 
-    public Journey(AID product, AID worker, int startTime, int endTime) {
-        super(product, worker, startTime, endTime);
+    public Journey(JourneyProposal proposal) {
+        super(proposal.getProduct(), proposal.getRobot(), proposal.getRobotStartTime(), proposal.getProductStartTime() + proposal.getJourneyDuration());
+        this.startPoint = proposal.getStartPoint();
+        this.pickupPoint = proposal.getPickupMachine();
+        this.dropoffPoint = proposal.getDropoffMachine();
+        this.pickupTime = proposal.getProductStartTime();
+        this.journeyDuration = proposal.getJourneyDuration();
+    }
+
+    public Point getDropoffPoint() {
+        return dropoffPoint;
     }
 }

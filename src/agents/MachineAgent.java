@@ -1,12 +1,13 @@
 package agents;
 
-import behaviours.ReplyToRequestBehaviour;
+import behaviours.ReplyToMachineRequestBehaviour;
 import behaviours.ScheduleTaskBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import utils.LoggableAgent;
+import utils.Point;
 import utils.Table;
 
 import java.util.ArrayList;
@@ -17,8 +18,10 @@ public class MachineAgent extends LoggableAgent {
 
     private HashMap<Process, Integer> availableProcesses = new HashMap<>();
     private ArrayList<Task> scheduledTasks = new ArrayList<>();
+    private Point location;
 
-    public MachineAgent() {
+    public MachineAgent(Point location) {
+        this.location = location;
     }
 
     public MachineAgent(HashMap<String, Integer> processes) {
@@ -75,7 +78,7 @@ public class MachineAgent extends LoggableAgent {
             fe.printStackTrace();
         }
 
-        addBehaviour(new ReplyToRequestBehaviour());
+        addBehaviour(new ReplyToMachineRequestBehaviour());
         addBehaviour(new ScheduleTaskBehaviour());
     }
 
@@ -106,6 +109,10 @@ public class MachineAgent extends LoggableAgent {
             }
             table.print();
         }
+    }
+
+    public Point getLocation() {
+        return location;
     }
 }
 

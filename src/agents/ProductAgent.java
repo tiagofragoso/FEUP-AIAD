@@ -7,44 +7,40 @@ import utils.Pair;
 import utils.Table;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 public class ProductAgent extends LoggableAgent {
-    private ArrayList<Pair<Process, Boolean>> processes = new ArrayList<>();
-    private ArrayList<Task> scheduledProcesses = new ArrayList<>();
+    private LinkedHashMap<Process, Boolean> processes = new LinkedHashMap<>();
+    private ArrayList<Task> scheduledTasks = new ArrayList<>();
     private int priority;
     private ArrayList<AID> machines = new ArrayList<>();
 
     public ProductAgent(String[] processes, int priority) {
         for (String code : processes) {
-            this.processes.add(
-                    new Pair<>(new Process(code), false)
-            );
+            this.processes.put(new Process(code), false);
         }
         this.priority = priority;
     }
 
-    public ArrayList<Pair<Process, Boolean>> getProcesses() {
+    public LinkedHashMap<Process, Boolean> getProcesses() {
         return this.processes;
     }
 
-    public void completeProcess(Process process) {
-        for (Pair<Process, Boolean> pair : processes) {
-            if (pair.left.equals(process)) {
-                pair.right = true;
-            }
-        }
+    public void markProcessComplete(Process process) {
+        processes.computeIfPresent(process, (p, v) -> true );
     }
 
-    public void scheduleProcess(Process process, int start, int duration) {
-        scheduledProcesses.add(new Task(process, duration, start, start + duration));
+    public void scheduleTask(Proposal proposal) {
+        scheduledTasks.add(new Task(proposal));
     }
 
     public int getEarliestTimeAvailable() {
-        if (scheduledProcesses.isEmpty()) {
+        if (scheduledTasks.isEmpty()) {
             return 0;
         } else {
-            return scheduledProcesses.get(scheduledProcesses.size() - 1).getEndTime();
+            return scheduledTasks.get(scheduledTasks.size() - 1).getEndTime();
         }
     }
 
@@ -67,9 +63,7 @@ public class ProductAgent extends LoggableAgent {
 
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Process sequence: ");
-        for (Pair<Process, Boolean> process : processes) {
-            stringBuilder.append(process.left.getCode());
-        }
+        processes.forEach((p, c) -> stringBuilder.append(p));
 
         log(Level.SEVERE, stringBuilder.toString());
 
@@ -77,13 +71,13 @@ public class ProductAgent extends LoggableAgent {
     }
 
     public boolean isComplete() {
-        return this.processes.size() == this.scheduledProcesses.size();
+        return this.processes.size() == this.scheduledTasks.size();
     }
 
     public Process getNextProcess() {
-        for (Pair<Process, Boolean> p : processes) {
-            if (!p.right)
-                return p.left;
+        for (Map.Entry<Process, Boolean> entry: processes.entrySet()) {
+            if (!entry.getValue())
+                return entry.getKey();
         }
         return null;
     }
@@ -97,8 +91,8 @@ public class ProductAgent extends LoggableAgent {
         synchronized (System.out) {
             System.out.println("PRODUCT: " + this.getLocalName());
             Table table = new Table(new String[]{"Time", "Process", "Machine"}, 15);
-            for (Task t: this.scheduledProcesses) {
-                Object[] row = new Object[] {t.getStartTime()+"-"+t.getEndTime(), t.getProcess(), "Machine X"};
+            for (Task t: this.scheduledTasks) {
+                Object[] row = new Object[] {t.getStartTime()+"-"+t.getEndTime(), t.getProcess(), t.getWorkerName()};
                 table.addRow(row);
             }
             table.print();

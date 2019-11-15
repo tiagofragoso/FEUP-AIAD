@@ -96,7 +96,7 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
         msg.addReceiver(currentProposal.getMachine());
         int startTime = Math.max(((ProductAgent) myAgent).getEarliestTimeAvailable(), currentProposal.getMachineEarliestAvailableTime());
 
-        currentProposal.accept(myAgent.getLocalName(), startTime);
+        currentProposal.accept(myAgent.getAID(), startTime);
 
         Message contentObject = new Message();
         contentObject.append("proposal", currentProposal);
@@ -125,8 +125,8 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
                 log(Level.WARNING, "[IN] [INFORM] " + proposal.in());
 
                 if (proposal.equals(currentProposal)) {
-                    ((ProductAgent) myAgent).completeProcess(proposal.getProcess());
-                    ((ProductAgent) myAgent).scheduleProcess(proposal.getProcess(), proposal.getProductStartTime(), proposal.getDuration());
+                    ((ProductAgent) myAgent).markProcessComplete(proposal.getProcess());
+                    ((ProductAgent) myAgent).scheduleTask(proposal);
                 }
 
                 log(Level.SEVERE, "[SCHEDULE] " + proposal.in());

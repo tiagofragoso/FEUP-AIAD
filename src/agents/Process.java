@@ -1,6 +1,7 @@
 package agents;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class Process implements Serializable {
     private String code;
@@ -31,5 +32,10 @@ public class Process implements Serializable {
         Process p = (Process) obj;
 
         return this.code.equals(p.getCode());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(code);
     }
 }

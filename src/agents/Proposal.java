@@ -11,7 +11,7 @@ public class Proposal implements Serializable {
     private int machineEarliestAvailableTime;
     private int duration;
 
-    private String productName;
+    private AID product;
     private Integer productStartTime = null;
 
     public Proposal(AID machine, Process process, int machineEarliestAvailableTime, int duration) {
@@ -45,21 +45,23 @@ public class Proposal implements Serializable {
         return productStartTime;
     }
 
-    public String getProductName() {
-        return productName;
+    public AID getProduct() {
+        return product;
     }
+
+    public String getProductName() { return product.getLocalName(); }
 
     private boolean isAccepted() {
-        return this.productName != null && this.productStartTime != null;
+        return this.product != null && this.productStartTime != null;
     }
 
-    public void accept(String productName, int productStartTime) {
-        this.productName = productName;
+    public void accept(AID productName, int productStartTime) {
+        this.product = productName;
         this.productStartTime = productStartTime;
     }
 
     public void revokeAcceptance() {
-        this.productName = null;
+        this.product = null;
         this.productStartTime = null;
     }
 
@@ -72,7 +74,7 @@ public class Proposal implements Serializable {
                 productStartTime.equals(proposal.productStartTime) &&
                 Objects.equals(machine, proposal.machine) &&
                 Objects.equals(process, proposal.process) &&
-                Objects.equals(productName, proposal.productName);
+                Objects.equals(product, proposal.product);
     }
 
     public String in() {
@@ -86,7 +88,7 @@ public class Proposal implements Serializable {
     @Override
     public String toString() {
         return "for " + this.process + ": Prop. Start: " + this.getMachineEarliestAvailableTime() + " | Duration: "
-                + this.duration + (isAccepted() ? (" | Accepted by " + this.productName + " | Start: " + this.productStartTime
+                + this.duration + (isAccepted() ? (" | Accepted by " + this.getProductName() + " | Start: " + this.productStartTime
                 + " | End: " + (this.productStartTime + this.duration)) : "");
     }
 }

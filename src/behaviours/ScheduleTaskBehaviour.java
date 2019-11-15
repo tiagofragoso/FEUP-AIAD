@@ -34,7 +34,7 @@ public class ScheduleTaskBehaviour extends CyclicBehaviour implements Loggable {
             if (proposalWasAccepted(proposal) &&
                     proposal.getProductStartTime() >= ((MachineAgent) myAgent).getEarliestTimeAvailable()) {
 
-                ((MachineAgent) myAgent).addProcess(proposal.getProcess(), proposal.getProductStartTime(), proposal.getDuration(), proposal.getProductName());
+                ((MachineAgent) myAgent).scheduleTask(proposal);
 
                 reply.setPerformative(ACLMessage.INFORM);
 
@@ -58,7 +58,7 @@ public class ScheduleTaskBehaviour extends CyclicBehaviour implements Loggable {
     }
 
     private boolean proposalWasAccepted(Proposal proposal) {
-        return proposal.getProductName() != null && proposal.getProductStartTime() != null;
+        return proposal.getProduct() != null && proposal.getProductStartTime() != null;
     }
 
     @Override

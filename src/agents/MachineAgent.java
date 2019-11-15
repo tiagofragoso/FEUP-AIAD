@@ -7,7 +7,6 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import utils.LoggableAgent;
-import utils.Pair;
 import utils.Table;
 
 import java.util.ArrayList;
@@ -16,48 +15,37 @@ import java.util.logging.Level;
 
 public class MachineAgent extends LoggableAgent {
 
-    private ArrayList<Task> availableProcesses = new ArrayList<>();
-    private ArrayList<Pair<Task, String>> scheduledProcesses = new ArrayList<>();
+    private HashMap<Process, Integer> availableProcesses = new HashMap<>();
+    private ArrayList<Task> scheduledTasks = new ArrayList<>();
 
     public MachineAgent() {
     }
 
     public MachineAgent(HashMap<String, Integer> processes) {
-        processes.forEach((p, t) -> availableProcesses.add(new Task(new Process(p), t)));
+        processes.forEach((p, t) -> availableProcesses.put(new Process(p), t));
     }
 
     public boolean canPerform(Process process) {
-        for (Task task : availableProcesses) {
-            if (task.getProcess().equals(process)) {
-                return true;
-            }
-        }
-
-        return false;
+        return availableProcesses.containsKey(process);
     }
 
     public int getEarliestTimeAvailable() {
-        if (scheduledProcesses.isEmpty()) {
+        if (scheduledTasks.isEmpty()) {
             return 0;
         }
-        return scheduledProcesses.get(scheduledProcesses.size() - 1).left.getEndTime();
+        return scheduledTasks.get(scheduledTasks.size() - 1).getEndTime();
     }
 
     public int getDuration(Process process) {
-        for (Task task : availableProcesses) {
-            if (task.getProcess().equals(process)) {
-                return task.getDuration();
-            }
-        }
-        return -1;
+        return availableProcesses.getOrDefault(process, -1);
     }
 
-    public void addTask(String code, int duration) {
-        availableProcesses.add(new Task(new Process(code), duration));
+    public void addAvailableProcess(String code, int duration) {
+        availableProcesses.put(new Process(code), duration);
     }
 
-    public void addProcess(Process process, int start, int duration, String productName) {
-        scheduledProcesses.add(new Pair<>(new Task(process, duration, start, start + duration), productName));
+    public void scheduleTask(Proposal proposal) {
+        scheduledTasks.add(new Task(proposal));
     }
 
     protected void setup() {
@@ -70,9 +58,7 @@ public class MachineAgent extends LoggableAgent {
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append("Available processes: ");
-        for (Task task : availableProcesses) {
-            stringBuilder.append(task.getProcess().getCode());
-        }
+        availableProcesses.forEach((p, _d) -> stringBuilder.append(p));
 
         log(Level.SEVERE, stringBuilder.toString());
 
@@ -113,10 +99,9 @@ public class MachineAgent extends LoggableAgent {
         synchronized (System.out) {
             System.out.println("MACHINE: " + this.getLocalName());
             Table table = new Table(new String[]{"Time", "Process", "Product"}, 15);
-            for (Pair<Task, String> pair: this.scheduledProcesses) {
-                Task t = pair.left;
-                String productName = pair.right;
-                Object[] row = new Object[] {t.getStartTime()+"-"+t.getEndTime(), t.getProcess(), productName};
+            for (Task task: this.scheduledTasks) {
+                Object[] row = new Object[] {task.getStartTime() + "-" + task.getEndTime(), task.getProcess(),
+                        task.getProductName()};
                 table.addRow(row);
             }
             table.print();

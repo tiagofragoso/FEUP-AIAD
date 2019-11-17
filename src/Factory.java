@@ -12,7 +12,6 @@ import utils.LoggableAgent;
 import utils.Pair;
 import utils.Point;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -49,11 +48,11 @@ public class Factory {
                 new ArrayList<Pair<HashMap<String, Integer>, Point>>() {{
                     add(
                             new Pair<>(
-                                new HashMap<String, Integer>() {{
-                                    put("A", 10);
-                                    put("B", 20);
-                                    put("C", 30);
-                                }},
+                                    new HashMap<String, Integer>() {{
+                                        put("A", 10);
+                                        put("B", 20);
+                                        put("C", 30);
+                                    }},
                                     new Point(10, 0)
                             )
                     );
@@ -62,6 +61,8 @@ public class Factory {
                                     new HashMap<String, Integer>() {{
                                         put("A", 10);
                                         put("B", 20);
+                                        put("D", 15);
+                                        put("E", 50);
                                     }},
                                     new Point(10, 10)
                             )
@@ -75,21 +76,20 @@ public class Factory {
                 new String[][]{
                         new String[]{"A", "B", "C"},
                         new String[]{"A", "B"},
-                        /*
                         new String[]{"A"},
-                        //new String[]{"A", "B", "C", "D", "E"},
+                        new String[]{"A", "B", "C", "D", "E"},
                         new String[]{"A", "B",},
                         new String[]{"A", "C"},
-                        new String[]{"C"},*/
+                        new String[]{"C"},
                 },
                 mainContainer);
 
         generateRobots(
                 new ArrayList<Pair<Integer, Point>>() {{
                     add(new Pair<>(5, new Point(10, 5)));
-/*                    add(new Pair<>(10, new Point(6, 5)));
+                    add(new Pair<>(10, new Point(6, 5)));
                     add(new Pair<>(5, new Point(12, 0)));
-                    add(new Pair<>(5, new Point(12, 10)));*/
+                    add(new Pair<>(5, new Point(12, 10)));
                 }},
                 mainContainer
         );

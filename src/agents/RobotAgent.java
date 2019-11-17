@@ -1,9 +1,8 @@
 package agents;
 
-import behaviours.ReplyToRequestBehaviour;
-import behaviours.RobotReplyToRequestBehaviour;
+import behaviours.CancelJourneyBehaviour;
+import behaviours.JourneyProposalBehaviour;
 import behaviours.ScheduleJourneyBehaviour;
-import behaviours.ScheduleTaskBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -46,8 +45,13 @@ public class RobotAgent extends LoggableAgent {
             fe.printStackTrace();
         }
 
-        addBehaviour(new RobotReplyToRequestBehaviour());
+        addBehaviour(new JourneyProposalBehaviour());
         addBehaviour(new ScheduleJourneyBehaviour());
+        addBehaviour(new CancelJourneyBehaviour());
+    }
+
+    public ArrayList<Journey> getScheduledJourneys() {
+        return scheduledJourneys;
     }
 
     private void addShutdownHook() {
@@ -78,8 +82,8 @@ public class RobotAgent extends LoggableAgent {
         synchronized (System.out) {
             System.out.println("ROBOT: " + this.getLocalName());
             Table table = new Table(new String[]{"Time", "Journey", "Product"});
-            for (Journey j: this.scheduledJourneys) {
-                Object[] row = new Object[] {j.getStartTime()+"-"+j.getEndTime(), j.getStartPoint() + " -> " + j.getEndPoint(), j.getProductName()};
+            for (Journey j : this.scheduledJourneys) {
+                Object[] row = new Object[]{j.getStartTime() + "-" + j.getEndTime(), j.getStartPoint() + " -> " + j.getEndPoint(), j.getProductName()};
 
                 table.addRow(row);
             }

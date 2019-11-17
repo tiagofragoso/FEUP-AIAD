@@ -1,6 +1,5 @@
 package utils;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 
 public class Table {
@@ -32,15 +31,15 @@ public class Table {
     }
 
     private void printHeader() {
-        for (int i = 0; i < headers.length*COLUMN_SIZE; i++) System.out.print("-");
+        for (int i = 0; i < headers.length * COLUMN_SIZE; i++) System.out.print("-");
         System.out.println();
 
-        for (String header: headers) {
-            System.out.printf("%-"+COLUMN_SIZE+"s", header);
+        for (String header : headers) {
+            System.out.printf("%-" + COLUMN_SIZE + "s", header);
         }
         System.out.println();
 
-        for (int i = 0; i < headers.length*COLUMN_SIZE; i++) System.out.print("-");
+        for (int i = 0; i < headers.length * COLUMN_SIZE; i++) System.out.print("-");
         System.out.println();
     }
 

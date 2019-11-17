@@ -1,6 +1,6 @@
 package agents;
 
-import behaviours.ReplyToRequestBehaviour;
+import behaviours.ProposalBehaviour;
 import behaviours.ScheduleTaskBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -83,7 +83,7 @@ public class MachineAgent extends LoggableAgent {
             fe.printStackTrace();
         }
 
-        addBehaviour(new ReplyToRequestBehaviour());
+        addBehaviour(new ProposalBehaviour());
         addBehaviour(new ScheduleTaskBehaviour());
     }
 

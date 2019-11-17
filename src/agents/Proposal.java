@@ -1,7 +1,6 @@
 package agents;
 
 import jade.core.AID;
-import jade.core.Agent;
 import utils.Point;
 
 import java.io.Serializable;
@@ -42,10 +41,6 @@ public class Proposal implements Serializable {
         return machineEarliestAvailableTime;
     }
 
-    public void setMachineEarliestAvailableTime(int machineEarliestAvailableTime) {
-        this.machineEarliestAvailableTime = machineEarliestAvailableTime;
-    }
-
     public int getDuration() {
         return duration;
     }
@@ -58,7 +53,9 @@ public class Proposal implements Serializable {
         return product;
     }
 
-    public String getProductName() { return product.getLocalName(); }
+    public String getProductName() {
+        return product.getLocalName();
+    }
 
     private boolean isAccepted() {
         return this.product != null && this.productStartTime != null;
@@ -67,11 +64,6 @@ public class Proposal implements Serializable {
     public void accept(AID product, int productStartTime) {
         this.product = product;
         this.productStartTime = productStartTime;
-    }
-
-    public void revokeAcceptance() {
-        this.product = null;
-        this.productStartTime = null;
     }
 
     @Override
@@ -87,12 +79,12 @@ public class Proposal implements Serializable {
                 Objects.equals(journeyProposal, proposal.journeyProposal);
     }
 
-    public void setJourneyProposal(JourneyProposal journeyProposal) {
-        this.journeyProposal = journeyProposal;
-    }
-
     public JourneyProposal getJourneyProposal() {
         return journeyProposal;
+    }
+
+    public void setJourneyProposal(JourneyProposal journeyProposal) {
+        this.journeyProposal = journeyProposal;
     }
 
     public String in() {

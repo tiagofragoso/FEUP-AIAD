@@ -14,7 +14,7 @@ import utils.LoggableAgent;
 
 import java.util.logging.Level;
 
-public class ReplyToRequestBehaviour extends CyclicBehaviour implements Loggable {
+public class ProposalBehaviour extends CyclicBehaviour implements Loggable {
     public void action() {
         MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CFP);
         ACLMessage msg = myAgent.receive(mt);

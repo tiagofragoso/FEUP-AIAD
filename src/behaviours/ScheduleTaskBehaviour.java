@@ -41,9 +41,6 @@ public class ScheduleTaskBehaviour extends CyclicBehaviour implements Loggable {
                 log(Level.WARNING, "[OUT] [INFORM] " + proposal.out());
 
             } else {
-                proposal.revokeAcceptance();
-                proposal.setMachineEarliestAvailableTime(myAgent().getEarliestTimeAvailable());
-
                 reply.setPerformative(ACLMessage.FAILURE);
 
                 log(Level.WARNING, "[OUT] [FAILURE] " + proposal.out());

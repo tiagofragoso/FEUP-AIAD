@@ -9,7 +9,7 @@ class Task extends Job {
 
     Task(Proposal proposal) {
         super(proposal.getProduct(), proposal.getMachine(), proposal.getProductStartTime(),
-                (proposal.getProductStartTime()+ proposal.getDuration()));
+                (proposal.getProductStartTime() + proposal.getDuration()));
         this.process = proposal.getProcess();
         this.location = proposal.getLocation();
     }

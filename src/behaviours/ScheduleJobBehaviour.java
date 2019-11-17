@@ -16,14 +16,13 @@ import utils.Pair;
 import utils.Point;
 
 import java.io.Serializable;
-import java.lang.reflect.Array;
-import java.util.Comparator;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
-class MachineRequestBehaviour extends Behaviour implements Loggable {
+class ScheduleJobBehaviour extends Behaviour implements Loggable {
 
     private Process process;
     private MessageTemplate currentMessageTemplate;
@@ -34,11 +33,13 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
     private PriorityQueue<Proposal> robotProposals = new PriorityQueue<>(new ProposalComparator());
     private Proposal acceptedProposal;
 
-    MachineRequestBehaviour(Process process) {
+    ScheduleJobBehaviour(Process process) {
         this.process = process;
     }
 
-    private ProductAgent myAgent() { return (ProductAgent) myAgent; }
+    private ProductAgent myAgent() {
+        return (ProductAgent) myAgent;
+    }
 
     private Proposal getBestProposal() {
         return robotProposals.isEmpty() ? null : robotProposals.peek();
@@ -70,7 +71,7 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
     private void sendCFPtoRobots() {
 
         ArrayList<Message> messages = new ArrayList<>();
-        for (Proposal p: machineProposals) {
+        for (Proposal p : machineProposals) {
             Point pickupPoint = myAgent().getLatestPickupPoint();
             Point dropoffPoint = p.getLocation();
 
@@ -98,7 +99,7 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
     }
 
     private void receiveMachineProposals() {
-        receiveProposals((message)  -> {
+        receiveProposals((message) -> {
             if (message.getPerformative() == ACLMessage.PROPOSE) {
                 try {
                     Proposal proposal = (Proposal) ((Message) message.getContentObject()).getBody().get("proposal");
@@ -136,12 +137,11 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
                 }
             }
             robotReplies++;
-            if (robotReplies >= myAgent().getRobots().size()*machineProposals.size()) {
+            if (robotReplies >= myAgent().getRobots().size() * machineProposals.size()) {
                 state = request_state.ACCEPT_ROBOTS;
             }
         });
     }
-
 
 
     private void sendAccept(AID receiver, Pair<String, Object> content) {
@@ -232,7 +232,24 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
 
                 state = request_state.DONE;
             } else if (message.getPerformative() == ACLMessage.FAILURE) {
-                // cancel robot
+                Proposal proposal = null;
+                try {
+                    proposal = (Proposal) ((Message) message.getContentObject()).getBody().get("proposal");
+
+                } catch (UnreadableException e) {
+                    System.exit(1);
+                }
+
+                log(Level.WARNING, "[IN] [FAILURE] " + proposal.in());
+
+                ACLMessage msg = new ACLMessage(ACLMessage.CANCEL);
+                msg.addReceiver(proposal.getJourneyProposal().getRobot());
+                Message contentObject = new Message();
+                contentObject.append("proposal", proposal);
+                Communication.prepareMessage(contentObject, msg, "process-request", "cancel" + System.currentTimeMillis());
+                myAgent.send(msg);
+                currentMessageTemplate = Communication.prepareMessageTemplate(msg, "process-request");
+
                 state = request_state.DONE;
             }
         });
@@ -272,8 +289,8 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
 
     public boolean done() {
         if ((state == request_state.CFP_ROBOTS && machineProposals.isEmpty()) ||
-            (state == request_state.ACCEPT_ROBOTS && robotProposals.isEmpty())) {
-            log(Level.SEVERE, "[FAIL] No valid machineProposals");
+                (state == request_state.ACCEPT_ROBOTS && robotProposals.isEmpty())) {
+            log(Level.SEVERE, "[FAIL] No valid proposals");
             return true;
         }
         return (state == request_state.DONE);
@@ -300,7 +317,8 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
         INFORM_ROBOTS,
         ACCEPT_MACHINES,
         INFORM_MACHINES,
-        DONE}
+        DONE
+    }
 
     private class ProposalComparator implements Comparator<Proposal>, Serializable {
         public int compare(Proposal p1, Proposal p2) {

@@ -1,7 +1,6 @@
 package agents;
 
 import jade.core.AID;
-import jade.core.Agent;
 import utils.Point;
 
 import java.io.Serializable;
@@ -47,7 +46,9 @@ public class JourneyProposal implements Serializable {
         return robotEarliestAvailableTime;
     }
 
-    public String getProductName() { return product.getLocalName(); }
+    public String getProductName() {
+        return product.getLocalName();
+    }
 
     public int getPickupDuration() {
         return pickupDuration;
@@ -100,7 +101,7 @@ public class JourneyProposal implements Serializable {
 
     @Override
     public String toString() {
-        return "for journey from " + this.pickupPoint + " to " + this.dropoffPoint  + ": Prop. Start: " + this.getRobotEarliestAvailableTime() + " | Duration: "
+        return "for journey from " + this.pickupPoint + " to " + this.dropoffPoint + ": Prop. Start: " + this.getRobotEarliestAvailableTime() + " | Duration: "
                 + this.duration + (isAccepted() ? (" | Accepted by " + this.getProductName() + " | Start: " + this.productStartTime
                 + " | End: " + (this.productStartTime + this.duration)) : "");
     }

@@ -1,6 +1,8 @@
 package behaviours;
 
-import agents.*;
+import agents.JourneyProposal;
+import agents.Proposal;
+import agents.RobotAgent;
 import communication.Communication;
 import communication.Message;
 import jade.core.behaviours.CyclicBehaviour;
@@ -31,9 +33,9 @@ public class ScheduleJourneyBehaviour extends CyclicBehaviour implements Loggabl
 
             JourneyProposal jp = proposal.getJourneyProposal();
 
-            if (proposalWasAccepted(jp) && (jp.getProductStartTime()-jp.getPickupDuration()) >= ((RobotAgent) myAgent).getEarliestAvailableTime()) {
+            if (proposalWasAccepted(jp) && (jp.getProductStartTime() - jp.getPickupDuration()) >= myAgent().getEarliestAvailableTime()) {
 
-                ((RobotAgent) myAgent).scheduleJourney(proposal);
+                myAgent().scheduleJourney(proposal);
 
                 reply.setPerformative(ACLMessage.INFORM);
 
@@ -52,6 +54,10 @@ public class ScheduleJourneyBehaviour extends CyclicBehaviour implements Loggabl
         } else {
             block();
         }
+    }
+
+    private RobotAgent myAgent() {
+        return (RobotAgent) myAgent;
     }
 
     private boolean proposalWasAccepted(JourneyProposal proposal) {

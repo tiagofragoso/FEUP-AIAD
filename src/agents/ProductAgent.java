@@ -30,7 +30,7 @@ public class ProductAgent extends LoggableAgent {
     }
 
     public void markProcessComplete(Process process) {
-        processes.computeIfPresent(process, (p, v) -> true );
+        processes.computeIfPresent(process, (p, v) -> true);
     }
 
     public void scheduleJob(Proposal proposal) {
@@ -77,7 +77,7 @@ public class ProductAgent extends LoggableAgent {
     }
 
     public Process getNextProcess() {
-        for (Map.Entry<Process, Boolean> entry: processes.entrySet()) {
+        for (Map.Entry<Process, Boolean> entry : processes.entrySet()) {
             if (!entry.getValue())
                 return entry.getKey();
         }
@@ -93,14 +93,14 @@ public class ProductAgent extends LoggableAgent {
         synchronized (System.out) {
             System.out.println("PRODUCT: " + this.getLocalName());
             Table table = new Table(new String[]{"Time", "Job", "Worker"});
-            for (Job j: this.scheduledJobs) {
+            for (Job j : this.scheduledJobs) {
                 Object[] row = null;
                 if (j instanceof Task) {
                     Task t = (Task) j;
-                    row = new Object[] {t.getStartTime()+"-"+t.getEndTime(), "Process " + t.getProcess(), t.getWorkerName()};
+                    row = new Object[]{t.getStartTime() + "-" + t.getEndTime(), "Process " + t.getProcess(), t.getWorkerName()};
                 } else if (j instanceof Journey) {
                     Journey jo = (Journey) j;
-                    row = new Object[] {jo.getStartTime()+"-"+jo.getEndTime(), jo.getStartPoint() + " -> " + jo.getEndPoint(), jo.getWorkerName()};
+                    row = new Object[]{jo.getStartTime() + "-" + jo.getEndTime(), jo.getStartPoint() + " -> " + jo.getEndPoint(), jo.getWorkerName()};
                 }
                 table.addRow(row);
             }

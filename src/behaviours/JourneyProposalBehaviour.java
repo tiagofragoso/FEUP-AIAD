@@ -1,7 +1,8 @@
 package behaviours;
 
-import agents.*;
-import agents.Process;
+import agents.JourneyProposal;
+import agents.Proposal;
+import agents.RobotAgent;
 import communication.Communication;
 import communication.Message;
 import jade.core.behaviours.CyclicBehaviour;
@@ -14,7 +15,7 @@ import utils.Point;
 
 import java.util.logging.Level;
 
-public class RobotReplyToRequestBehaviour extends CyclicBehaviour implements Loggable {
+public class JourneyProposalBehaviour extends CyclicBehaviour implements Loggable {
     public void action() {
         MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CFP);
         ACLMessage msg = myAgent.receive(mt);
@@ -47,8 +48,8 @@ public class RobotReplyToRequestBehaviour extends CyclicBehaviour implements Log
 
     private JourneyProposal generateProposal(Point pickupPoint, Point dropoffPoint) {
         int pickupDuration = ((RobotAgent) myAgent).getPickupDuration(pickupPoint);
-        int earliestAvailableTime =  ((RobotAgent) myAgent).getEarliestAvailableTime() + pickupDuration;
-        return new JourneyProposal(myAgent.getAID(), earliestAvailableTime, pickupDuration,pickupPoint, dropoffPoint, ((RobotAgent) myAgent).getPickupDuration(pickupPoint));
+        int earliestAvailableTime = ((RobotAgent) myAgent).getEarliestAvailableTime() + pickupDuration;
+        return new JourneyProposal(myAgent.getAID(), earliestAvailableTime, pickupDuration, pickupPoint, dropoffPoint, ((RobotAgent) myAgent).getPickupDuration(pickupPoint));
     }
 
     @Override

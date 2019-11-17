@@ -25,7 +25,7 @@ public class ProductBehaviour extends TickerBehaviour implements Loggable {
 
     @Override
     protected void onTick() {
-        if (((ProductAgent) myAgent).isComplete()) {
+        if (myAgent().isComplete()) {
             this.stop();
             return;
         }
@@ -43,7 +43,7 @@ public class ProductBehaviour extends TickerBehaviour implements Loggable {
             for (DFAgentDescription result : results) {
                 machines.add(result.getName());
             }
-            ((ProductAgent) myAgent).setMachines(machines);
+            myAgent().setMachines(machines);
 
             template = new DFAgentDescription();
             sd = new ServiceDescription();
@@ -56,18 +56,22 @@ public class ProductBehaviour extends TickerBehaviour implements Loggable {
             for (DFAgentDescription result : results) {
                 robots.add(result.getName());
             }
-            ((ProductAgent) myAgent).setRobots(robots);
+            myAgent().setRobots(robots);
         } catch (FIPAException e) {
             e.printStackTrace();
         }
 
-        Process nextProcess = ((ProductAgent) myAgent).getNextProcess();
+        Process nextProcess = myAgent().getNextProcess();
         if (nextProcess != null) {
             log(Level.SEVERE, "[START] CFP for " + nextProcess);
-            currentBehaviour = new MachineRequestBehaviour(nextProcess);
+            currentBehaviour = new ScheduleJobBehaviour(nextProcess);
             myAgent.addBehaviour(currentBehaviour);
         }
 
+    }
+
+    private ProductAgent myAgent() {
+        return (ProductAgent) myAgent;
     }
 
     @Override

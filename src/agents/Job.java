@@ -17,7 +17,7 @@ class Job implements Serializable {
         this.endTime = endTime;
     }
 
-    int getStartTime() {
+    public int getStartTime() {
         return startTime;
     }
 

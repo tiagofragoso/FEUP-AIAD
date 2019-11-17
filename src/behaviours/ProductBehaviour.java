@@ -16,21 +16,13 @@ import utils.LoggableAgent;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
-public class ProductBehaviour extends TickerBehaviour implements Loggable {
+public class ProductBehaviour extends Behaviour implements Loggable {
     private Behaviour currentBehaviour;
 
-    public ProductBehaviour(Agent a, int milis) {
-        super(a, milis);
-    }
-
     @Override
-    protected void onTick() {
-        if (myAgent().isComplete()) {
-            this.stop();
-            return;
-        }
-
+    public void action() {
         if (currentBehaviour != null && !currentBehaviour.done()) return;
+
         try {
             DFAgentDescription template = new DFAgentDescription();
             ServiceDescription sd = new ServiceDescription();
@@ -68,6 +60,11 @@ public class ProductBehaviour extends TickerBehaviour implements Loggable {
             myAgent.addBehaviour(currentBehaviour);
         }
 
+    }
+
+    @Override
+    public boolean done() {
+        return myAgent().isComplete();
     }
 
     private ProductAgent myAgent() {

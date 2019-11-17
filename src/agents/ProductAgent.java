@@ -69,7 +69,7 @@ public class ProductAgent extends LoggableAgent {
 
         log(Level.SEVERE, stringBuilder.toString());
 
-        addBehaviour(new ProductBehaviour(this, 1000));
+        addBehaviour(new ProductBehaviour());
     }
 
     public boolean isComplete() {

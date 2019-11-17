@@ -69,21 +69,24 @@ public class RobotAgent extends LoggableAgent {
         return scheduledJourneys.get(scheduledJourneys.size() - 1).getEndTime();
     }
 
+    public Point getLatestStartPoint() {
+        if (scheduledJourneys.isEmpty())
+            return startingPoint;
+        else
+            return scheduledJourneys.get(scheduledJourneys.size() - 1).getDropoffPoint();
+    }
+
     public int getPickupDuration(Point pickupPoint) {
-        if (scheduledJourneys.isEmpty()) {
-            return startingPoint.distanceTo(pickupPoint) / velocity;
-        } else {
-            return scheduledJourneys.get(scheduledJourneys.size() - 1).getEndPoint().distanceTo(pickupPoint) / velocity;
-        }
+        return getLatestStartPoint().distanceTo(pickupPoint) / velocity;
     }
 
     @Override
     public void printSchedule() {
         synchronized (System.out) {
             System.out.println("ROBOT: " + this.getLocalName());
-            Table table = new Table(new String[]{"Time", "Journey", "Product"});
+            Table table = new Table(new String[]{"Time", "Journey", "Product"}, 40);
             for (Journey j : this.scheduledJourneys) {
-                Object[] row = new Object[]{j.getStartTime() + "-" + j.getEndTime(), j.getStartPoint() + " -> " + j.getEndPoint(), j.getProductName()};
+                Object[] row = new Object[]{j.getStartTime() + "-" + j.getEndTime(), j.getStartPoint() + " -> " + j.getPickupPoint() + " -> " + j.getDropoffPoint(), j.getProductName()};
 
                 table.addRow(row);
             }

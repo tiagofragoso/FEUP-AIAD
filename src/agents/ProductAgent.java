@@ -100,7 +100,7 @@ public class ProductAgent extends LoggableAgent {
                     row = new Object[]{t.getStartTime() + "-" + t.getEndTime(), "Process " + t.getProcess(), t.getWorkerName()};
                 } else if (j instanceof Journey) {
                     Journey jo = (Journey) j;
-                    row = new Object[]{jo.getStartTime() + "-" + jo.getEndTime(), jo.getStartPoint() + " -> " + jo.getEndPoint(), jo.getWorkerName()};
+                    row = new Object[]{jo.getStartTime() + "-" + jo.getEndTime(), jo.getPickupPoint() + " -> " + jo.getDropoffPoint(), jo.getWorkerName()};
                 }
                 table.addRow(row);
             }
@@ -118,7 +118,7 @@ public class ProductAgent extends LoggableAgent {
                 return t.getLocation();
             } else if (job instanceof Journey) {
                 Journey j = (Journey) job;
-                return j.getEndPoint();
+                return j.getDropoffPoint();
             }
         }
         return null;

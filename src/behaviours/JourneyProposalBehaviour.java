@@ -47,9 +47,13 @@ public class JourneyProposalBehaviour extends CyclicBehaviour implements Loggabl
     }
 
     private JourneyProposal generateProposal(Point pickupPoint, Point dropoffPoint) {
-        int pickupDuration = ((RobotAgent) myAgent).getPickupDuration(pickupPoint);
-        int earliestAvailableTime = ((RobotAgent) myAgent).getEarliestAvailableTime() + pickupDuration;
-        return new JourneyProposal(myAgent.getAID(), earliestAvailableTime, pickupDuration, pickupPoint, dropoffPoint, ((RobotAgent) myAgent).getPickupDuration(pickupPoint));
+        int pickupDuration = myAgent().getPickupDuration(pickupPoint);
+        int earliestAvailableTime = myAgent().getEarliestAvailableTime() + pickupDuration;
+        return new JourneyProposal(myAgent.getAID(), earliestAvailableTime, pickupDuration, pickupPoint, dropoffPoint, (myAgent()).getPickupDuration(pickupPoint), myAgent().getLatestStartPoint());
+    }
+
+    private RobotAgent myAgent() {
+        return (RobotAgent) myAgent;
     }
 
     @Override

@@ -13,17 +13,23 @@ public class JourneyProposal implements Serializable {
     private int pickupDuration;
     private Point pickupPoint;
     private Point dropoffPoint;
+    private Point startPoint;
 
     private AID product;
     private Integer productStartTime = null;
 
-    public JourneyProposal(AID robot, int robotEarliestAvailableTime, int duration, Point pickupPoint, Point dropoffPoint, int pickupDuration) {
+    public JourneyProposal(AID robot, int robotEarliestAvailableTime, int duration, Point pickupPoint, Point dropoffPoint, int pickupDuration, Point startPoint) {
         this.robot = robot;
         this.robotEarliestAvailableTime = robotEarliestAvailableTime;
         this.duration = duration;
         this.pickupPoint = pickupPoint;
         this.dropoffPoint = dropoffPoint;
         this.pickupDuration = pickupDuration;
+        this.startPoint = startPoint;
+    }
+
+    public Point getStartPoint() {
+        return startPoint;
     }
 
     public AID getProduct() {

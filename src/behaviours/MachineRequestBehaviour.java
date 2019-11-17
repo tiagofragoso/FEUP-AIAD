@@ -12,111 +12,201 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import utils.Loggable;
 import utils.LoggableAgent;
+import utils.Pair;
+import utils.Point;
 
-import java.util.ArrayList;
+import java.io.Serializable;
 import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.PriorityQueue;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 class MachineRequestBehaviour extends Behaviour implements Loggable {
 
     private Process process;
     private MessageTemplate currentMessageTemplate;
-    private request_state state = request_state.CALL_FOR_PROPOSALS;
-    private int replies = 0;
-    private PriorityQueue<Proposal> proposals = new PriorityQueue<>(new ProposalComparator());
-    private Proposal currentProposal;
+    private request_state state = request_state.CFP_MACHINES;
+    private int machineReplies = 0;
+    private int robotReplies = 0;
+    private ArrayList<Proposal> machineProposals = new ArrayList<>();
+    private PriorityQueue<Proposal> robotProposals = new PriorityQueue<>(new ProposalComparator());
+    private Proposal acceptedProposal;
 
     MachineRequestBehaviour(Process process) {
         this.process = process;
     }
 
-    private Proposal peekBestProposal() {
-        return proposals.isEmpty() ? null : proposals.peek();
+    private ProductAgent myAgent() { return (ProductAgent) myAgent; }
+
+    private Proposal getBestProposal() {
+        return robotProposals.isEmpty() ? null : robotProposals.peek();
     }
 
-    private Proposal popBestProposal() {
-        return proposals.isEmpty() ? null : proposals.poll();
-    }
 
-    // prepareCFPs
-    private void sendRequests() {
+    private void sendCFP(ArrayList<AID> receivers, Pair<String, Object> ...content) {
         ACLMessage msg = new ACLMessage(ACLMessage.CFP);
+        receivers.forEach(msg::addReceiver);
+
         Message contentObject = new Message();
-
-        ArrayList<AID> machines = ((ProductAgent) myAgent).getMachines();
-        for (AID machine : machines) {
-            msg.addReceiver(machine);
-        }
-
-        contentObject.append("process", this.process);
+        for (Pair<String, Object> p: content) contentObject.append(p.left, p.right);
 
         Communication.prepareMessage(contentObject, msg, "process-request", "cfp" + System.currentTimeMillis());
         myAgent.send(msg);
-
-        log(Level.WARNING, "[OUT] [CFP] Process " + this.process);
-
         currentMessageTemplate = Communication.prepareMessageTemplate(msg, "process-request");
-        state = request_state.RECEIVE_PROPOSALS;
+
     }
 
-    // handleAllResponses()
-    private void receiveProposals() {
+    private void sendCFPtoMachines() {
+        sendCFP(myAgent().getMachines(), new Pair<>("process", this.process));
+        log(Level.WARNING, "[OUT] [CFP] Process " + this.process);
+        state = request_state.PROPOSE_MACHINES;
+    }
+
+    private void sendCFPtoRobots() {
+        for (Proposal p: machineProposals) {
+            Point pickupPoint = myAgent().getLatestPickupPoint();
+            Point dropoffPoint = p.getLocation();
+
+            sendCFP(myAgent().getRobots(), new Pair<>("pickupPoint", pickupPoint), new Pair<>("dropoffPoint", dropoffPoint), new Pair<>("machineProposal", p));
+
+            log(Level.WARNING, "[OUT] [CFP] Pickup at: " + pickupPoint + " | Dropoff point: " + dropoffPoint);
+        }
+        state = request_state.PROPOSE_ROBOTS;
+    }
+
+    private void receiveProposals(Consumer<ACLMessage> action) {
         ACLMessage reply = myAgent.receive(currentMessageTemplate);
 
         if (reply != null) {
-            if (reply.getPerformative() == ACLMessage.PROPOSE) {
-                try {
-                    Proposal proposal = (Proposal) ((Message) reply.getContentObject()).getBody().get("proposal");
-                    proposals.add(proposal);
-
-                    log(Level.WARNING, "[IN] [PROPOSE] " + proposal.in());
-
-                } catch (UnreadableException e) {
-                    System.exit(1);
-                }
-            }
-
-            replies++;
-
-            if (replies >= ((ProductAgent) myAgent).getMachines().size()) {
-                state = request_state.ACCEPT_PROPOSAL;
-            }
+            action.accept(reply);
         } else {
             block();
         }
     }
 
-    private void sendConfirmation() {
+    private void receiveMachineProposals() {
+        receiveProposals((message)  -> {
+            if (message.getPerformative() == ACLMessage.PROPOSE) {
+                try {
+                    Proposal proposal = (Proposal) ((Message) message.getContentObject()).getBody().get("proposal");
+
+                    this.machineProposals.add(proposal);
+
+                    log(Level.WARNING, "[IN] [PROPOSE] " + proposal.in());
+
+                } catch (Exception e) {
+                    log(Level.SEVERE, e.getMessage());
+                    state = request_state.DONE;
+                }
+
+            }
+            machineReplies++;
+            if (machineReplies >= myAgent().getMachines().size()) {
+                state = request_state.CFP_ROBOTS;
+            }
+        });
+    }
+
+    private void receiveRobotProposals() {
+        receiveProposals((message) -> {
+            if (message.getPerformative() == ACLMessage.PROPOSE) {
+                try {
+                    Proposal proposal = (Proposal) ((Message) message.getContentObject()).getBody().get("proposal");
+
+                    this.robotProposals.add(proposal);
+
+                    log(Level.WARNING, "[IN] [PROPOSE] " + proposal.getJourneyProposal().in());
+
+                } catch (Exception e) {
+                    log(Level.SEVERE, e.getMessage());
+                    state = request_state.DONE;
+                }
+            }
+            robotReplies++;
+            log(Level.SEVERE, "replies: " + robotReplies + " total: " + myAgent().getRobots().size()*machineProposals.size());
+            if (robotReplies >= myAgent().getRobots().size()*machineProposals.size()) {
+                state = request_state.ACCEPT_ROBOTS;
+            }
+        });
+    }
+
+
+
+    private void sendAccept(AID receiver, Pair<String, Object> content) {
         ACLMessage msg = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
-        if (currentProposal == null)
-            currentProposal = popBestProposal();
-
-        assert currentProposal != null;
-        msg.addReceiver(currentProposal.getMachine());
-        int startTime = Math.max(((ProductAgent) myAgent).getEarliestTimeAvailable(), currentProposal.getMachineEarliestAvailableTime());
-
-        currentProposal.accept(myAgent.getAID(), startTime);
+        msg.addReceiver(receiver);
 
         Message contentObject = new Message();
-        contentObject.append("proposal", currentProposal);
+        contentObject.append(content.left, content.right);
 
         Communication.prepareMessage(contentObject, msg, "process-request", "confirmation" + System.currentTimeMillis());
         myAgent.send(msg);
-
-        log(Level.WARNING, "[OUT] [ACCEPT] " + currentProposal.in());
-
         currentMessageTemplate = Communication.prepareMessageTemplate(msg, "process-request");
-        state = request_state.RECEIVE_CONFIRMATION;
     }
 
-    private void receiveConfirmation() {
+    private void acceptRobots() {
+        Proposal proposal = getBestProposal();
+        assert proposal != null;
+        int startTime = Math.max(
+                Math.max(myAgent().getEarliestTimeAvailable(), proposal.getJourneyProposal().getRobotEarliestAvailableTime()),
+                (proposal.getMachineEarliestAvailableTime() - proposal.getJourneyProposal().getDuration())
+        );
+
+        proposal.getJourneyProposal().accept(myAgent.getAID(), startTime);
+        sendAccept(proposal.getJourneyProposal().getRobot(), new Pair<>("proposal", proposal));
+        acceptedProposal = proposal;
+
+        log(Level.WARNING, "[OUT] [ACCEPT] " + proposal.getJourneyProposal().in());
+        state = request_state.INFORM_ROBOTS;
+    }
+
+    private void acceptMachines() {
+        int startTime = acceptedProposal.getJourneyProposal().getProductStartTime() + acceptedProposal.getJourneyProposal().getDuration();
+        acceptedProposal.accept(myAgent.getAID(), startTime);
+
+        sendAccept(acceptedProposal.getMachine(), new Pair<>("proposal", acceptedProposal));
+
+        log(Level.WARNING, "[OUT] [ACCEPT] " + acceptedProposal.in());
+        state = request_state.INFORM_MACHINES;
+    }
+
+    private void receiveConfirmation(Consumer<ACLMessage> action) {
         ACLMessage reply = myAgent.receive(currentMessageTemplate);
-        Proposal proposal = null;
         if (reply != null) {
-            if (reply.getPerformative() == ACLMessage.INFORM) {
+            action.accept(reply);
+        } else {
+            block();
+        }
+    }
+
+    private void receiveRobotConfirmation() {
+        receiveConfirmation((message) -> {
+            if (message.getPerformative() == ACLMessage.INFORM) {
+                Proposal proposal = null;
                 try {
-                    proposal = (Proposal) ((Message) reply.getContentObject()).getBody().get("proposal");
+                    proposal = (Proposal) ((Message) message.getContentObject()).getBody().get("proposal");
+
+                } catch (UnreadableException e) {
+                    System.exit(1);
+                }
+
+                log(Level.WARNING, "[IN] [INFORM] " + proposal.getJourneyProposal().in());
+
+                log(Level.SEVERE, "[SCHEDULE] " + proposal.getJourneyProposal().in());
+                state = request_state.ACCEPT_MACHINES;
+            } else if (message.getPerformative() == ACLMessage.FAILURE) {
+                state = request_state.DONE;
+            }
+        });
+    }
+
+    private void receiveMachineConfirmation() {
+        receiveConfirmation((message) -> {
+            if (message.getPerformative() == ACLMessage.INFORM) {
+                Proposal proposal = null;
+                try {
+                    proposal = (Proposal) ((Message) message.getContentObject()).getBody().get("proposal");
 
                 } catch (UnreadableException e) {
                     System.exit(1);
@@ -124,52 +214,45 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
 
                 log(Level.WARNING, "[IN] [INFORM] " + proposal.in());
 
-                if (proposal.equals(currentProposal)) {
-                    ((ProductAgent) myAgent).markProcessComplete(proposal.getProcess());
-                    ((ProductAgent) myAgent).scheduleTask(proposal);
-                }
-
                 log(Level.SEVERE, "[SCHEDULE] " + proposal.in());
 
-            } else if (reply.getPerformative() == ACLMessage.FAILURE) {
-                Proposal newProposal = null;
-                try {
-                    newProposal = (Proposal) ((Message) reply.getContentObject()).getBody().get("proposal");
-                } catch (UnreadableException e) {
-                    System.exit(1);
-                }
+                myAgent().markProcessComplete(proposal.getProcess());
+                myAgent().scheduleJob(proposal);
 
-                log(Level.WARNING, "[IN] [FAILURE] " + newProposal.in());
-
-                if (proposals.isEmpty() || computeProposalTime(newProposal) < computeProposalTime(peekBestProposal())) {
-                    currentProposal = newProposal;
-                    log(Level.WARNING, "[RETRY] " + newProposal.in());
-                } else {
-                    currentProposal = null;
-                    log(Level.WARNING, "[FAIL] Accepting next best proposal");
-                }
-                state = request_state.ACCEPT_PROPOSAL;
-                return;
+                state = request_state.DONE;
+            } else if (message.getPerformative() == ACLMessage.FAILURE) {
+                // cancel robot
+                state = request_state.DONE;
             }
-            state = request_state.DONE;
-        } else {
-            block();
-        }
+        });
     }
 
     public void action() {
+        log(Level.SEVERE, "State " + state.toString());
         switch (state) {
-            case CALL_FOR_PROPOSALS:
-                sendRequests();
+            case CFP_MACHINES:
+                sendCFPtoMachines();
                 break;
-            case RECEIVE_PROPOSALS:
-                receiveProposals();
+            case PROPOSE_MACHINES:
+                receiveMachineProposals();
                 break;
-            case ACCEPT_PROPOSAL:
-                sendConfirmation();
+            case CFP_ROBOTS:
+                sendCFPtoRobots();
                 break;
-            case RECEIVE_CONFIRMATION:
-                receiveConfirmation();
+            case PROPOSE_ROBOTS:
+                receiveRobotProposals();
+                break;
+            case ACCEPT_ROBOTS:
+                acceptRobots();
+                break;
+            case INFORM_ROBOTS:
+                receiveRobotConfirmation();
+                break;
+            case ACCEPT_MACHINES:
+                acceptMachines();
+                break;
+            case INFORM_MACHINES:
+                receiveMachineConfirmation();
                 break;
             case DONE:
             default:
@@ -178,15 +261,19 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
     }
 
     public boolean done() {
-        if (state == request_state.ACCEPT_PROPOSAL && proposals.isEmpty() && currentProposal == null) {
-            log(Level.SEVERE, "[FAIL] No valid proposals");
+        if ((state == request_state.CFP_ROBOTS && machineProposals.isEmpty()) ||
+            (state == request_state.ACCEPT_ROBOTS && robotProposals.isEmpty())) {
+            log(Level.SEVERE, "[FAIL] No valid machineProposals");
             return true;
         }
         return (state == request_state.DONE);
     }
 
     private int computeProposalTime(Proposal proposal) {
-        return Math.max(((ProductAgent) myAgent).getEarliestTimeAvailable(), proposal.getMachineEarliestAvailableTime()) + proposal.getDuration();
+        return Math.max(
+                Math.max(myAgent().getEarliestTimeAvailable(), proposal.getJourneyProposal().getRobotEarliestAvailableTime()),
+                (proposal.getMachineEarliestAvailableTime() - proposal.getJourneyProposal().getDuration())
+        ) + proposal.getJourneyProposal().getDuration() + proposal.getDuration();
     }
 
     @Override
@@ -194,9 +281,18 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
         ((LoggableAgent) myAgent).log(level, msg);
     }
 
-    private enum request_state {CALL_FOR_PROPOSALS, RECEIVE_PROPOSALS, ACCEPT_PROPOSAL, RECEIVE_CONFIRMATION, DONE}
+    private enum request_state {
+        CFP_MACHINES,
+        PROPOSE_MACHINES,
+        CFP_ROBOTS,
+        PROPOSE_ROBOTS,
+        ACCEPT_ROBOTS,
+        INFORM_ROBOTS,
+        ACCEPT_MACHINES,
+        INFORM_MACHINES,
+        DONE}
 
-    class ProposalComparator implements Comparator<Proposal> {
+    private class ProposalComparator implements Comparator<Proposal>, Serializable {
         public int compare(Proposal p1, Proposal p2) {
             int t1 = computeProposalTime(p1);
             int t2 = computeProposalTime(p2);

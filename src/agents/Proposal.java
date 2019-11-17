@@ -1,6 +1,8 @@
 package agents;
 
 import jade.core.AID;
+import jade.core.Agent;
+import utils.Point;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -10,15 +12,22 @@ public class Proposal implements Serializable {
     private Process process;
     private int machineEarliestAvailableTime;
     private int duration;
+    private Point location;
 
     private AID product;
     private Integer productStartTime = null;
+    private JourneyProposal journeyProposal;
 
-    public Proposal(AID machine, Process process, int machineEarliestAvailableTime, int duration) {
+    public Proposal(AID machine, Process process, int machineEarliestAvailableTime, int duration, Point location) {
         this.machine = machine;
         this.process = process;
         this.machineEarliestAvailableTime = machineEarliestAvailableTime;
         this.duration = duration;
+        this.location = location;
+    }
+
+    public Point getLocation() {
+        return location;
     }
 
     public AID getMachine() {
@@ -55,8 +64,8 @@ public class Proposal implements Serializable {
         return this.product != null && this.productStartTime != null;
     }
 
-    public void accept(AID productName, int productStartTime) {
-        this.product = productName;
+    public void accept(AID product, int productStartTime) {
+        this.product = product;
         this.productStartTime = productStartTime;
     }
 
@@ -74,7 +83,16 @@ public class Proposal implements Serializable {
                 productStartTime.equals(proposal.productStartTime) &&
                 Objects.equals(machine, proposal.machine) &&
                 Objects.equals(process, proposal.process) &&
-                Objects.equals(product, proposal.product);
+                Objects.equals(product, proposal.product) &&
+                Objects.equals(journeyProposal, proposal.journeyProposal);
+    }
+
+    public void setJourneyProposal(JourneyProposal journeyProposal) {
+        this.journeyProposal = journeyProposal;
+    }
+
+    public JourneyProposal getJourneyProposal() {
+        return journeyProposal;
     }
 
     public String in() {

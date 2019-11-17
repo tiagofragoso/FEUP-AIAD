@@ -1,7 +1,6 @@
 package behaviours;
 
-import agents.MachineAgent;
-import agents.Proposal;
+import agents.*;
 import communication.Communication;
 import communication.Message;
 import jade.core.behaviours.CyclicBehaviour;
@@ -13,7 +12,7 @@ import utils.LoggableAgent;
 
 import java.util.logging.Level;
 
-public class ScheduleTaskBehaviour extends CyclicBehaviour implements Loggable {
+public class ScheduleJourneyBehaviour extends CyclicBehaviour implements Loggable {
     public void action() {
         MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL);
         ACLMessage msg = myAgent.receive(mt);
@@ -23,30 +22,28 @@ public class ScheduleTaskBehaviour extends CyclicBehaviour implements Loggable {
 
         if (msg != null) {
             try {
-                proposal = (Proposal) ((Message) msg.getContentObject()).getBody().get("proposal");
+                proposal = ((Proposal) ((Message) msg.getContentObject()).getBody().get("proposal"));
             } catch (UnreadableException e) {
                 System.exit(1);
             }
 
             ACLMessage reply = msg.createReply();
 
+            JourneyProposal jp = proposal.getJourneyProposal();
 
-            if (proposalWasAccepted(proposal) &&
-                    proposal.getProductStartTime() >= myAgent().getEarliestTimeAvailable()) {
+            if (proposalWasAccepted(jp) && (jp.getProductStartTime()-jp.getPickupDuration()) >= ((RobotAgent) myAgent).getEarliestAvailableTime()) {
 
-                myAgent().scheduleTask(proposal);
+                ((RobotAgent) myAgent).scheduleJourney(proposal);
 
                 reply.setPerformative(ACLMessage.INFORM);
 
-                log(Level.WARNING, "[OUT] [INFORM] " + proposal.out());
+                log(Level.WARNING, "[OUT] [INFORM] " + jp.out());
 
             } else {
-                proposal.revokeAcceptance();
-                proposal.setMachineEarliestAvailableTime(myAgent().getEarliestTimeAvailable());
 
                 reply.setPerformative(ACLMessage.FAILURE);
 
-                log(Level.WARNING, "[OUT] [FAILURE] " + proposal.out());
+                log(Level.WARNING, "[OUT] [FAILURE] " + jp.out());
             }
 
             contentObject.append("proposal", proposal);
@@ -57,16 +54,13 @@ public class ScheduleTaskBehaviour extends CyclicBehaviour implements Loggable {
         }
     }
 
-    private boolean proposalWasAccepted(Proposal proposal) {
+    private boolean proposalWasAccepted(JourneyProposal proposal) {
         return proposal.getProduct() != null && proposal.getProductStartTime() != null;
-    }
-
-    private MachineAgent myAgent() {
-        return (MachineAgent) myAgent;
     }
 
     @Override
     public void log(Level level, String msg) {
         ((LoggableAgent) myAgent).log(level, msg);
     }
+
 }

@@ -2,7 +2,9 @@ package agents;
 
 import jade.core.AID;
 
-class Job {
+import java.io.Serializable;
+
+class Job implements Serializable {
     private int startTime;
     private int endTime;
     private AID product;

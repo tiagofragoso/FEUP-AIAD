@@ -31,12 +31,12 @@ public class ProductBehaviour extends TickerBehaviour implements Loggable {
         }
 
         if (currentBehaviour != null && !currentBehaviour.done()) return;
-
-        DFAgentDescription template = new DFAgentDescription();
-        ServiceDescription sd = new ServiceDescription();
-        sd.setType("machine");
-        template.addServices(sd);
         try {
+            DFAgentDescription template = new DFAgentDescription();
+            ServiceDescription sd = new ServiceDescription();
+            sd.setType("machine");
+            template.addServices(sd);
+
             DFAgentDescription[] results = DFService.search(myAgent, template);
 
             ArrayList<AID> machines = new ArrayList<>();
@@ -44,6 +44,19 @@ public class ProductBehaviour extends TickerBehaviour implements Loggable {
                 machines.add(result.getName());
             }
             ((ProductAgent) myAgent).setMachines(machines);
+
+            template = new DFAgentDescription();
+            sd = new ServiceDescription();
+            sd.setType("robot");
+            template.addServices(sd);
+
+            results = DFService.search(myAgent, template);
+
+            ArrayList<AID> robots = new ArrayList<>();
+            for (DFAgentDescription result : results) {
+                robots.add(result.getName());
+            }
+            ((ProductAgent) myAgent).setRobots(robots);
         } catch (FIPAException e) {
             e.printStackTrace();
         }

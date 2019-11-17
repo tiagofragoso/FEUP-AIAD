@@ -7,6 +7,7 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import utils.LoggableAgent;
+import utils.Point;
 import utils.Table;
 
 import java.util.ArrayList;
@@ -17,12 +18,19 @@ public class MachineAgent extends LoggableAgent {
 
     private HashMap<Process, Integer> availableProcesses = new HashMap<>();
     private ArrayList<Task> scheduledTasks = new ArrayList<>();
+    private Point location;
 
-    public MachineAgent() {
+    public MachineAgent(Point location) {
+        this.location = location;
     }
 
-    public MachineAgent(HashMap<String, Integer> processes) {
+    public MachineAgent(HashMap<String, Integer> processes, Point location) {
         processes.forEach((p, t) -> availableProcesses.put(new Process(p), t));
+        this.location = location;
+    }
+
+    public Point getLocation() {
+        return location;
     }
 
     public boolean canPerform(Process process) {
@@ -99,8 +107,8 @@ public class MachineAgent extends LoggableAgent {
         synchronized (System.out) {
             System.out.println("MACHINE: " + this.getLocalName());
             Table table = new Table(new String[]{"Time", "Process", "Product"}, 15);
-            for (Task task: this.scheduledTasks) {
-                Object[] row = new Object[] {task.getStartTime() + "-" + task.getEndTime(), task.getProcess(),
+            for (Task task : this.scheduledTasks) {
+                Object[] row = new Object[]{task.getStartTime() + "-" + task.getEndTime(), task.getProcess(),
                         task.getProductName()};
                 table.addRow(row);
             }

@@ -31,7 +31,7 @@ public class ReplyToRequestBehaviour extends CyclicBehaviour implements Loggable
 
             if (((MachineAgent) myAgent).canPerform(process)) {
                 reply.setPerformative(ACLMessage.PROPOSE);
-                Proposal proposal = new Proposal(myAgent.getAID(), process, ((MachineAgent) myAgent).getEarliestTimeAvailable(), ((MachineAgent) myAgent).getDuration(process));
+                Proposal proposal = new Proposal(myAgent().getAID(), process, myAgent().getEarliestTimeAvailable(), myAgent().getDuration(process), myAgent().getLocation());
 
                 Message contentObject = new Message();
                 contentObject.append("proposal", proposal);
@@ -50,6 +50,10 @@ public class ReplyToRequestBehaviour extends CyclicBehaviour implements Loggable
         } else {
             block();
         }
+    }
+
+    private MachineAgent myAgent() {
+        return (MachineAgent) myAgent;
     }
 
     @Override

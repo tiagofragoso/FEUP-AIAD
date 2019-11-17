@@ -3,7 +3,7 @@ package agents;
 import behaviours.ProductBehaviour;
 import jade.core.AID;
 import utils.LoggableAgent;
-import utils.Pair;
+import utils.Point;
 import utils.Table;
 
 import java.util.ArrayList;
@@ -13,15 +13,16 @@ import java.util.logging.Level;
 
 public class ProductAgent extends LoggableAgent {
     private LinkedHashMap<Process, Boolean> processes = new LinkedHashMap<>();
-    private ArrayList<Task> scheduledTasks = new ArrayList<>();
-    private int priority;
+    private ArrayList<Job> scheduledJobs = new ArrayList<>();
     private ArrayList<AID> machines = new ArrayList<>();
+    private ArrayList<AID> robots = new ArrayList<>();
+    private Point startingPoint;
 
-    public ProductAgent(String[] processes, int priority) {
+    public ProductAgent(String[] processes, Point startingPoint) {
         for (String code : processes) {
             this.processes.put(new Process(code), false);
         }
-        this.priority = priority;
+        this.startingPoint = startingPoint;
     }
 
     public LinkedHashMap<Process, Boolean> getProcesses() {
@@ -32,15 +33,16 @@ public class ProductAgent extends LoggableAgent {
         processes.computeIfPresent(process, (p, v) -> true );
     }
 
-    public void scheduleTask(Proposal proposal) {
-        scheduledTasks.add(new Task(proposal));
+    public void scheduleJob(Proposal proposal) {
+        scheduledJobs.add(new Journey(proposal));
+        scheduledJobs.add(new Task(proposal));
     }
 
     public int getEarliestTimeAvailable() {
-        if (scheduledTasks.isEmpty()) {
+        if (scheduledJobs.isEmpty()) {
             return 0;
         } else {
-            return scheduledTasks.get(scheduledTasks.size() - 1).getEndTime();
+            return scheduledJobs.get(scheduledJobs.size() - 1).getEndTime();
         }
     }
 
@@ -71,7 +73,7 @@ public class ProductAgent extends LoggableAgent {
     }
 
     public boolean isComplete() {
-        return this.processes.size() == this.scheduledTasks.size();
+        return this.processes.size() == this.scheduledJobs.size();
     }
 
     public Process getNextProcess() {
@@ -90,12 +92,44 @@ public class ProductAgent extends LoggableAgent {
     public void printSchedule() {
         synchronized (System.out) {
             System.out.println("PRODUCT: " + this.getLocalName());
-            Table table = new Table(new String[]{"Time", "Process", "Machine"}, 15);
-            for (Task t: this.scheduledTasks) {
-                Object[] row = new Object[] {t.getStartTime()+"-"+t.getEndTime(), t.getProcess(), t.getWorkerName()};
+            Table table = new Table(new String[]{"Time", "Job", "Worker"});
+            for (Job j: this.scheduledJobs) {
+                Object[] row = null;
+                if (j instanceof Task) {
+                    Task t = (Task) j;
+                    row = new Object[] {t.getStartTime()+"-"+t.getEndTime(), "Process " + t.getProcess(), t.getWorkerName()};
+                } else if (j instanceof Journey) {
+                    Journey jo = (Journey) j;
+                    row = new Object[] {jo.getStartTime()+"-"+jo.getEndTime(), jo.getStartPoint() + " -> " + jo.getEndPoint(), jo.getWorkerName()};
+                }
                 table.addRow(row);
             }
             table.print();
         }
     }
+
+    public Point getLatestPickupPoint() {
+        if (scheduledJobs.isEmpty()) {
+            return startingPoint;
+        } else {
+            Job job = scheduledJobs.get(scheduledJobs.size() - 1);
+            if (job instanceof Task) {
+                Task t = (Task) job;
+                return t.getLocation();
+            } else if (job instanceof Journey) {
+                Journey j = (Journey) job;
+                return j.getEndPoint();
+            }
+        }
+        return null;
+    }
+
+    public ArrayList<AID> getRobots() {
+        return robots;
+    }
+
+    public void setRobots(ArrayList<AID> robots) {
+        this.robots = robots;
+    }
+
 }

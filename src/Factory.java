@@ -17,8 +17,8 @@ import java.util.HashMap;
 
 public class Factory {
 
-    final static Point pickupPoint = new Point(0, 5);
-    final static Point dropoffPoint = new Point(30, 5);
+    private final static Point pickupPoint = new Point(0, 5);
+    private final static Point dropoffPoint = new Point(30, 5);
 
     public static void main(String[] args) {
         if (args.length > 0 && args[0].equals("--verbose")) {
@@ -100,7 +100,7 @@ public class Factory {
         for (int i = 0; i < products.length; i++) {
             String[] p = products[i];
             try {
-                ProductAgent pr = new ProductAgent(p, Factory.pickupPoint);
+                ProductAgent pr = new ProductAgent(p, Factory.pickupPoint, Factory.dropoffPoint);
                 AgentController ac1 = mainContainer.acceptNewAgent("Product " + i, pr);
                 ac1.start();
             } catch (StaleProxyException e) {

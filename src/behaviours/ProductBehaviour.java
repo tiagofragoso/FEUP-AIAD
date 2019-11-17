@@ -54,12 +54,15 @@ public class ProductBehaviour extends Behaviour implements Loggable {
         }
 
         Process nextProcess = myAgent().getNextProcess();
-        if (nextProcess != null) {
+        if (nextProcess != null && !myAgent().isDone()) {
             log(Level.SEVERE, "[START] CFP for " + nextProcess);
             currentBehaviour = new ScheduleJobBehaviour(nextProcess);
             myAgent.addBehaviour(currentBehaviour);
+        } else if (nextProcess == null && !myAgent().isDone()) {
+            log(Level.SEVERE, "[START] CFP for dropoff");
+            currentBehaviour = ScheduleJobBehaviour.ScheduleDropoffBehaviour();
+            myAgent.addBehaviour(currentBehaviour);
         }
-
     }
 
     @Override

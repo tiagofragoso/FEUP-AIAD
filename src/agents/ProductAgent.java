@@ -17,16 +17,23 @@ public class ProductAgent extends LoggableAgent {
     private ArrayList<AID> machines = new ArrayList<>();
     private ArrayList<AID> robots = new ArrayList<>();
     private Point startingPoint;
+    private Point dropoffPoint;
+    private boolean done = false;
 
-    public ProductAgent(String[] processes, Point startingPoint) {
+    public ProductAgent(String[] processes, Point startingPoint, Point dropoffPoint) {
         for (String code : processes) {
             this.processes.put(new Process(code), false);
         }
         this.startingPoint = startingPoint;
+        this.dropoffPoint = dropoffPoint;
     }
 
     public LinkedHashMap<Process, Boolean> getProcesses() {
         return this.processes;
+    }
+
+    public Point getDropoffPoint() {
+        return dropoffPoint;
     }
 
     public void markProcessComplete(Process process) {
@@ -73,7 +80,7 @@ public class ProductAgent extends LoggableAgent {
     }
 
     public boolean isComplete() {
-        return getNextProcess() == null;
+        return getNextProcess() == null && done;
     }
 
     public Process getNextProcess() {
@@ -132,4 +139,13 @@ public class ProductAgent extends LoggableAgent {
         this.robots = robots;
     }
 
+    public void scheduleDropoff(Proposal proposal) {
+        scheduledJobs.add(new Journey(proposal));
+        done = true;
+        log(Level.SEVERE, "Finished at " + this.getEarliestTimeAvailable());
+    }
+
+    public boolean isDone() {
+        return done;
+    }
 }

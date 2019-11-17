@@ -32,9 +32,18 @@ class ScheduleJobBehaviour extends Behaviour implements Loggable {
     private ArrayList<Proposal> machineProposals = new ArrayList<>();
     private PriorityQueue<Proposal> robotProposals = new PriorityQueue<>(new ProposalComparator());
     private Proposal acceptedProposal;
+    private boolean dropoff = false;
 
     ScheduleJobBehaviour(Process process) {
         this.process = process;
+    }
+    private ScheduleJobBehaviour() { }
+
+    public static ScheduleJobBehaviour ScheduleDropoffBehaviour() {
+        ScheduleJobBehaviour behaviour = new ScheduleJobBehaviour();
+        behaviour.dropoff = true;
+        behaviour.state = request_state.CFP_ROBOTS;
+        return behaviour;
     }
 
     private ProductAgent myAgent() {
@@ -69,20 +78,28 @@ class ScheduleJobBehaviour extends Behaviour implements Loggable {
     }
 
     private void sendCFPtoRobots() {
-
         ArrayList<Message> messages = new ArrayList<>();
-        for (Proposal p : machineProposals) {
-            Point pickupPoint = myAgent().getLatestPickupPoint();
-            Point dropoffPoint = p.getLocation();
 
+        if (dropoff) {
             Message contentObject = new Message();
-            contentObject.append("pickupPoint", pickupPoint);
-            contentObject.append("dropoffPoint", dropoffPoint);
-            contentObject.append("machineProposal", p);
+            contentObject.append("pickupPoint", myAgent().getLatestPickupPoint());
+            contentObject.append("dropoffPoint", myAgent().getDropoffPoint());
+            contentObject.append("machineProposal", new Proposal(null, null, 0, 0, null));
             messages.add(contentObject);
+        } else {
+            for (Proposal p : machineProposals) {
+                Point pickupPoint = myAgent().getLatestPickupPoint();
+                Point dropoffPoint = p.getLocation();
 
+                Message contentObject = new Message();
 
-            log(Level.WARNING, "[OUT] [CFP] Pickup at: " + pickupPoint + " | Dropoff point: " + dropoffPoint);
+                contentObject.append("pickupPoint", pickupPoint);
+                contentObject.append("dropoffPoint", dropoffPoint);
+                contentObject.append("machineProposal", p);
+
+                messages.add(contentObject);
+                log(Level.WARNING, "[OUT] [CFP] Pickup at: " + pickupPoint + " | Dropoff point: " + dropoffPoint);
+            }
         }
         sendCFP(myAgent().getRobots(), messages);
         state = request_state.PROPOSE_ROBOTS;
@@ -205,7 +222,13 @@ class ScheduleJobBehaviour extends Behaviour implements Loggable {
                 log(Level.WARNING, "[IN] [INFORM] " + proposal.getJourneyProposal().in());
 
                 log(Level.SEVERE, "[SCHEDULE] " + proposal.getJourneyProposal().in());
-                state = request_state.ACCEPT_MACHINES;
+
+                if (dropoff) {
+                    myAgent().scheduleDropoff(proposal);
+                    state = request_state.DONE;
+                } else {
+                    state = request_state.ACCEPT_MACHINES;
+                }
             } else if (message.getPerformative() == ACLMessage.FAILURE) {
                 state = request_state.DONE;
             }
@@ -288,8 +311,8 @@ class ScheduleJobBehaviour extends Behaviour implements Loggable {
     }
 
     public boolean done() {
-        if ((state == request_state.CFP_ROBOTS && machineProposals.isEmpty()) ||
-                (state == request_state.ACCEPT_ROBOTS && robotProposals.isEmpty())) {
+        if (!dropoff && ((state == request_state.CFP_ROBOTS && machineProposals.isEmpty()) ||
+                (state == request_state.ACCEPT_ROBOTS && robotProposals.isEmpty()))) {
             log(Level.SEVERE, "[FAIL] No valid proposals");
             return true;
         }

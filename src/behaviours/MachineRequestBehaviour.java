@@ -16,6 +16,7 @@ import utils.Pair;
 import utils.Point;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.Comparator;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
@@ -44,34 +45,45 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
     }
 
 
-    private void sendCFP(ArrayList<AID> receivers, Pair<String, Object> ...content) {
-        ACLMessage msg = new ACLMessage(ACLMessage.CFP);
-        receivers.forEach(msg::addReceiver);
+    private void sendCFP(ArrayList<AID> receivers, ArrayList<Message> contentObjects) {
+        long currentTime = System.currentTimeMillis();
+        contentObjects.forEach((message) -> {
+            ACLMessage msg = new ACLMessage(ACLMessage.CFP);
+            receivers.forEach(msg::addReceiver);
 
-        Message contentObject = new Message();
-        for (Pair<String, Object> p: content) contentObject.append(p.left, p.right);
-
-        Communication.prepareMessage(contentObject, msg, "process-request", "cfp" + System.currentTimeMillis());
-        myAgent.send(msg);
-        currentMessageTemplate = Communication.prepareMessageTemplate(msg, "process-request");
-
+            Communication.prepareMessage(message, msg, "process-request", "cfp" + currentTime);
+            myAgent.send(msg);
+            currentMessageTemplate = Communication.prepareMessageTemplate(msg, "process-request");
+        });
     }
 
     private void sendCFPtoMachines() {
-        sendCFP(myAgent().getMachines(), new Pair<>("process", this.process));
+        Message contentObject = new Message();
+        contentObject.append("process", process);
+        ArrayList<Message> messages = new ArrayList<>();
+        messages.add(contentObject);
+        sendCFP(myAgent().getMachines(), messages);
         log(Level.WARNING, "[OUT] [CFP] Process " + this.process);
         state = request_state.PROPOSE_MACHINES;
     }
 
     private void sendCFPtoRobots() {
+
+        ArrayList<Message> messages = new ArrayList<>();
         for (Proposal p: machineProposals) {
             Point pickupPoint = myAgent().getLatestPickupPoint();
             Point dropoffPoint = p.getLocation();
 
-            sendCFP(myAgent().getRobots(), new Pair<>("pickupPoint", pickupPoint), new Pair<>("dropoffPoint", dropoffPoint), new Pair<>("machineProposal", p));
+            Message contentObject = new Message();
+            contentObject.append("pickupPoint", pickupPoint);
+            contentObject.append("dropoffPoint", dropoffPoint);
+            contentObject.append("machineProposal", p);
+            messages.add(contentObject);
+
 
             log(Level.WARNING, "[OUT] [CFP] Pickup at: " + pickupPoint + " | Dropoff point: " + dropoffPoint);
         }
+        sendCFP(myAgent().getRobots(), messages);
         state = request_state.PROPOSE_ROBOTS;
     }
 

@@ -57,7 +57,7 @@ public class Factory {
                                     new Point(10, 0)
                             )
                     );
-                    /*add(
+                    add(
                             new Pair<>(
                                     new HashMap<String, Integer>() {{
                                         put("A", 10);
@@ -65,7 +65,7 @@ public class Factory {
                                     }},
                                     new Point(10, 10)
                             )
-                    );*/
+                    );
 
                 }},
                 mainContainer

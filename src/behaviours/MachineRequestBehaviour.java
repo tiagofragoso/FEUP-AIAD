@@ -136,7 +136,6 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
                 }
             }
             robotReplies++;
-            log(Level.SEVERE, "replies: " + robotReplies + " total: " + myAgent().getRobots().size()*machineProposals.size());
             if (robotReplies >= myAgent().getRobots().size()*machineProposals.size()) {
                 state = request_state.ACCEPT_ROBOTS;
             }
@@ -240,7 +239,6 @@ class MachineRequestBehaviour extends Behaviour implements Loggable {
     }
 
     public void action() {
-        log(Level.SEVERE, "State " + state.toString());
         switch (state) {
             case CFP_MACHINES:
                 sendCFPtoMachines();

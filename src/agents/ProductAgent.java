@@ -73,7 +73,7 @@ public class ProductAgent extends LoggableAgent {
     }
 
     public boolean isComplete() {
-        return this.processes.size() == this.scheduledJobs.size();
+        return getNextProcess() == null;
     }
 
     public Process getNextProcess() {

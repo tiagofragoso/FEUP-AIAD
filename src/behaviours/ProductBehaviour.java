@@ -3,7 +3,9 @@ package behaviours;
 import agents.Process;
 import agents.ProductAgent;
 import jade.core.AID;
+import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -14,11 +16,20 @@ import utils.LoggableAgent;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
-public class ProductBehaviour extends Behaviour implements Loggable {
+public class ProductBehaviour extends TickerBehaviour implements Loggable {
     private Behaviour currentBehaviour;
 
+    public ProductBehaviour(Agent a) {
+        super(a, 1000);
+    }
+
     @Override
-    public void action() {
+    protected void onTick() {
+        if (myAgent().isComplete()) {
+            this.stop();
+            return;
+        }
+
         if (currentBehaviour != null && !currentBehaviour.done()) return;
 
         try {
@@ -61,11 +72,6 @@ public class ProductBehaviour extends Behaviour implements Loggable {
             currentBehaviour = ScheduleJobBehaviour.ScheduleDropoffBehaviour();
             myAgent.addBehaviour(currentBehaviour);
         }
-    }
-
-    @Override
-    public boolean done() {
-        return myAgent().isComplete();
     }
 
     private ProductAgent myAgent() {

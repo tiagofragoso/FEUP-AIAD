@@ -41,7 +41,7 @@ class ScheduleJobBehaviour extends Behaviour implements Loggable {
     private ScheduleJobBehaviour() {
     }
 
-    public static ScheduleJobBehaviour ScheduleDropoffBehaviour() {
+    static ScheduleJobBehaviour ScheduleDropoffBehaviour() {
         ScheduleJobBehaviour behaviour = new ScheduleJobBehaviour();
         behaviour.dropoff = true;
         behaviour.state = request_state.CFP_ROBOTS;

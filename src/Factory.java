@@ -8,24 +8,37 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
-import utils.LoggableAgent;
-import utils.Pair;
-import utils.PlatformManager;
-import utils.Point;
+import utils.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Factory {
 
-    private final static Point pickupPoint = new Point(0, 5);
-    private final static Point dropoffPoint = new Point(30, 5);
+    private static Point pickupPoint;
+    private static Point dropoffPoint;
+    private static ArrayList<String[]> products = new ArrayList<>();
+    private static ArrayList<Pair<HashMap<String, Integer>, Point>> machines = new ArrayList<>();
+    private static ArrayList<Pair<Integer, Point>> robots = new ArrayList<>();
 
 
     public static void main(String[] args) {
-        if (args.length > 0 && args[0].equals("--verbose")) {
+        if (args.length < 1) {
+            System.out.println("Usage: sh run.sh <filename> [--verbose]");
+            return;
+        }
+
+        if (args.length > 1 && args[1].equals("--verbose")) {
             LoggableAgent.severeOnly = false;
         }
+
+        FileReader fr = new FileReader("../examples/" + args[0]);
+        fr.parse();
+        pickupPoint = fr.getPickupPoint();
+        dropoffPoint = fr.getDropoffPoint();
+        products = fr.getProducts();
+        machines = fr.getMachines();
+        robots = fr.getRobots();
         initJADE();
     }
 
@@ -48,63 +61,15 @@ public class Factory {
             e.printStackTrace();
         }
 
-
-        generateMachines(
-                new ArrayList<Pair<HashMap<String, Integer>, Point>>() {{
-                    add(
-                            new Pair<>(
-                                    new HashMap<String, Integer>() {{
-                                        put("A", 10);
-                                        put("B", 20);
-                                        put("C", 30);
-                                    }},
-                                    new Point(10, 0)
-                            )
-                    );
-                    add(
-                            new Pair<>(
-                                    new HashMap<String, Integer>() {{
-                                        put("A", 10);
-                                        put("B", 20);
-                                        put("D", 15);
-                                        put("E", 50);
-                                    }},
-                                    new Point(10, 10)
-                            )
-                    );
-
-                }},
-                mainContainer
-        );
-
-        generateProducts(
-                new String[][]{
-                        new String[]{"A", "B", "C"},
-                        new String[]{"A", "B"},
-                        new String[]{"A"},
-                        new String[]{"A", "B", "C", "D", "E"},
-                        new String[]{"A", "B",},
-                        new String[]{"A", "C"},
-                        new String[]{"C"},
-                },
-                mainContainer);
-
-        generateRobots(
-                new ArrayList<Pair<Integer, Point>>() {{
-                    add(new Pair<>(5, new Point(10, 5)));
-                    add(new Pair<>(10, new Point(6, 5)));
-                    add(new Pair<>(5, new Point(12, 0)));
-                    add(new Pair<>(5, new Point(12, 10)));
-                }},
-                mainContainer
-        );
-
+        generateProducts(products, mainContainer);
+        generateMachines(machines, mainContainer);
+        generateRobots(robots, mainContainer);
     }
 
-    private static void generateProducts(String[][] products, ContainerController mainContainer) {
-        PlatformManager.getInstance().setProductCount(products.length);
-        for (int i = 0; i < products.length; i++) {
-            String[] p = products[i];
+    private static void generateProducts(ArrayList<String[]> products, ContainerController mainContainer) {
+        PlatformManager.getInstance().setProductCount(products.size());
+        for (int i = 0; i < products.size(); i++) {
+            String[] p = products.get(i);
             try {
                 ProductAgent pr = new ProductAgent(p, Factory.pickupPoint, Factory.dropoffPoint);
                 AgentController ac1 = mainContainer.acceptNewAgent("Product " + i, pr);

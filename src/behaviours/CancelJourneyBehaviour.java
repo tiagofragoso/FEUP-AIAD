@@ -30,7 +30,7 @@ public class CancelJourneyBehaviour extends CyclicBehaviour implements Loggable 
 
             log(Level.SEVERE, "[IN] [CANCEL] From: " + msg.getSender().getLocalName() + " | Cancel journey at " + startTime);
 
-            for (Journey j: myAgent().getScheduledJourneys()) {
+            for (Journey j : myAgent().getScheduledJourneys()) {
                 if (j.getStartTime() == startTime) {
                     myAgent().getScheduledJourneys().remove(j);
                     return;

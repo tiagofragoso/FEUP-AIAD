@@ -3,6 +3,7 @@ package agents;
 import behaviours.ProductBehaviour;
 import jade.core.AID;
 import utils.LoggableAgent;
+import utils.PlatformManager;
 import utils.Point;
 import utils.Table;
 
@@ -143,6 +144,13 @@ public class ProductAgent extends LoggableAgent {
         scheduledJobs.add(new Journey(proposal));
         done = true;
         log(Level.SEVERE, "Finished at " + this.getEarliestTimeAvailable());
+        doDelete();
+    }
+
+    @Override
+    protected void takeDown() {
+        log(Level.SEVERE, "Terminating");
+        PlatformManager.getInstance().registerProductTime(this.getEarliestTimeAvailable());
     }
 
     public boolean isDone() {

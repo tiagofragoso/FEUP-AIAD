@@ -80,6 +80,17 @@ public class RobotAgent extends LoggableAgent {
         return getLatestStartPoint().distanceTo(pickupPoint) / velocity;
     }
 
+    protected void takeDown() {
+        // Deregister from the yellow pages
+        try {
+            DFService.deregister(this);
+        } catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+        // Printout a dismissal message
+        log(Level.SEVERE, "Terminating");
+    }
+
     @Override
     public void printSchedule() {
         synchronized (System.out) {

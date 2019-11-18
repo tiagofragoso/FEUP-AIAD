@@ -10,6 +10,7 @@ import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
 import utils.LoggableAgent;
 import utils.Pair;
+import utils.PlatformManager;
 import utils.Point;
 
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ public class Factory {
 
     private final static Point pickupPoint = new Point(0, 5);
     private final static Point dropoffPoint = new Point(30, 5);
+
 
     public static void main(String[] args) {
         if (args.length > 0 && args[0].equals("--verbose")) {
@@ -31,9 +33,12 @@ public class Factory {
         Runtime rt = Runtime.instance();
         Profile p1 = new ProfileImpl();
         ContainerController mainContainer = rt.createMainContainer(p1);
+        PlatformManager.getInstance().setMainContainer(mainContainer);
         setup(mainContainer);
         rt.shutDown();
     }
+
+
 
     private static void setup(ContainerController mainContainer) {
 
@@ -97,6 +102,7 @@ public class Factory {
     }
 
     private static void generateProducts(String[][] products, ContainerController mainContainer) {
+        PlatformManager.getInstance().setProductCount(products.length);
         for (int i = 0; i < products.length; i++) {
             String[] p = products[i];
             try {

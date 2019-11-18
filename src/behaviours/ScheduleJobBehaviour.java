@@ -37,7 +37,9 @@ class ScheduleJobBehaviour extends Behaviour implements Loggable {
     ScheduleJobBehaviour(Process process) {
         this.process = process;
     }
-    private ScheduleJobBehaviour() { }
+
+    private ScheduleJobBehaviour() {
+    }
 
     public static ScheduleJobBehaviour ScheduleDropoffBehaviour() {
         ScheduleJobBehaviour behaviour = new ScheduleJobBehaviour();

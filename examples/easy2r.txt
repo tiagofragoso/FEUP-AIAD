@@ -1,0 +1,15 @@
+# Pickup point: x,y
+0,5
+# Dropoff point: x,y
+30,5
+# Agents: productCount;machineCount;robotCount
+2;2;2
+# Product: Process_A,Process_B,Process_C
+A,B,C
+A,B
+# Machine: Process_A:duration_A,Process_B:duration_B,Process_C:duration_C;Location: x,y
+A:10,B:20,C:30;10,0
+A:20,C:30;10,10
+# Robot: velocity;Starting point: x, y
+2;5,0
+2;6,0

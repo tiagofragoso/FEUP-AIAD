@@ -7,9 +7,11 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import utils.LoggableAgent;
+import utils.PlatformManager;
 import utils.Point;
 import utils.Table;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -57,8 +59,6 @@ public class MachineAgent extends LoggableAgent {
     }
 
     protected void setup() {
-        addShutdownHook();
-
         this.bootstrapAgent(this);
 
         log(Level.SEVERE, "Created");
@@ -87,11 +87,8 @@ public class MachineAgent extends LoggableAgent {
         addBehaviour(new ScheduleTaskBehaviour());
     }
 
-    private void addShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(this::printSchedule));
-    }
-
     protected void takeDown() {
+        printSchedule();
         // Deregister from the yellow pages
         try {
             DFService.deregister(this);
@@ -104,15 +101,17 @@ public class MachineAgent extends LoggableAgent {
 
     @Override
     public void printSchedule() {
-        synchronized (System.out) {
-            System.out.println("MACHINE: " + this.getLocalName());
-            Table table = new Table(new String[]{"Time", "Process", "Product"}, 15);
+        synchronized ( PlatformManager.getInstance().out()) {
+            PrintWriter out = PlatformManager.getInstance().out();
+            out.println("MACHINE: " + this.getLocalName());
+            Table table = new Table(out, new String[]{"Time", "Process", "Product"}, 50);
             for (Task task : this.scheduledTasks) {
                 Object[] row = new Object[]{task.getStartTime() + "-" + task.getEndTime(), task.getProcess(),
                         task.getProductName()};
                 table.addRow(row);
             }
             table.print();
+            out.flush();
         }
     }
 }

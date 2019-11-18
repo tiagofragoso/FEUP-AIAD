@@ -1,13 +1,23 @@
 package utils;
 
 import jade.wrapper.ContainerController;
-import jade.wrapper.ControllerException;
+
+import java.io.IOException;
+import java.io.PrintWriter;
 
 public class PlatformManager {
     private static PlatformManager instance = null;
-    private ContainerController mainContainer;
     private int maxTime = 0;
     private int unfinishedProducts;
+    private FileWriter out;
+
+    public void setOutputFile(String fileName) throws IOException {
+        this.out = new FileWriter(fileName);
+    }
+
+    public PrintWriter out() {
+        return this.out.out();
+    }
 
     synchronized public void registerProductTime(int time) {
         maxTime = Math.max(maxTime, time);
@@ -20,22 +30,6 @@ public class PlatformManager {
 
     public void setProductCount(int unfinishedProducts) {
         this.unfinishedProducts = unfinishedProducts;
-    }
-
-    private void killAll() {
-        try {
-            this.mainContainer.getPlatformController().kill();
-        } catch (ControllerException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void setMainContainer(ContainerController mainContainer) {
-        this.mainContainer = mainContainer;
-    }
-
-    public ContainerController getMainContainer() {
-        return mainContainer;
     }
 
     public static PlatformManager getInstance() {

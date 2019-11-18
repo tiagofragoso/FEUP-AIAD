@@ -38,8 +38,10 @@ public class FileReader {
     public void parse() {
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
-            if (state == parse_state.DONE)
+            if (state == parse_state.DONE) {
+                scanner.close();
                 return;
+            }
             if (line.startsWith("#"))
                 continue;
             action(line);

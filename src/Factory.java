@@ -10,8 +10,14 @@ import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
 import utils.*;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Factory {
 
@@ -22,7 +28,7 @@ public class Factory {
     private static ArrayList<Pair<Integer, Point>> robots = new ArrayList<>();
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         if (args.length < 1) {
             System.out.println("Usage: sh run.sh <filename> [--verbose]");
             return;
@@ -39,14 +45,51 @@ public class Factory {
         products = fr.getProducts();
         machines = fr.getMachines();
         robots = fr.getRobots();
+        final DateFormat df = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
+        PlatformManager.getInstance().setOutputFile("../logs/" + df.format(new Date(System.currentTimeMillis())) + ".log");
+        logInitialState();
         initJADE();
+    }
+
+    private static void logInitialState() {
+        synchronized (PlatformManager.getInstance().out()) {
+            PrintWriter out = PlatformManager.getInstance().out();
+            out.println("Pickup point " + pickupPoint);
+            out.println("Dropoff point " + pickupPoint);
+            out.println("------------------------");
+            out.println("AGENTS:\n");
+            out.println("Products");
+            for (int i = 0; i < products.size(); i++) {
+                String[] product = products.get(i);
+                out.println("Product " + i + ": " + String.join("", product));
+            }
+            out.println();
+            out.println("Machines");
+            for (int i = 0; i < machines.size(); i++) {
+                Pair<HashMap<String, Integer>, Point> machine = machines.get(i);
+                StringBuilder strb = new StringBuilder();
+                for (Map.Entry<String, Integer> entry: machine.left.entrySet()) {
+                    strb.append(entry.getKey() + ":" + entry.getValue());
+                }
+                out.println("Machine " + i + ": " + strb.toString() + " | Location " + machine.right);
+            }
+            out.println();
+            out.println("Robots");
+            for (int i = 0; i < robots.size(); i++) {
+                Pair<Integer, Point> robot = robots.get(i);
+                out.println("Robot " + i + ": Velocity: " + robot.left + " | Starting location:  " + robot.right);
+            }
+            out.println();
+            out.println("------------------------");
+            out.println("RESULTS:\n\n");
+            out.flush();
+        }
     }
 
     private static void initJADE() {
         Runtime rt = Runtime.instance();
         Profile p1 = new ProfileImpl();
         ContainerController mainContainer = rt.createMainContainer(p1);
-        PlatformManager.getInstance().setMainContainer(mainContainer);
         setup(mainContainer);
         rt.shutDown();
     }

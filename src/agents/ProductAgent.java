@@ -7,6 +7,7 @@ import utils.PlatformManager;
 import utils.Point;
 import utils.Table;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -63,9 +64,6 @@ public class ProductAgent extends LoggableAgent {
     }
 
     protected void setup() {
-
-        addShutdownHook();
-
         this.bootstrapAgent(this);
 
         // Logging
@@ -92,15 +90,12 @@ public class ProductAgent extends LoggableAgent {
         return null;
     }
 
-    private void addShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(this::printSchedule));
-    }
-
     @Override
     public void printSchedule() {
-        synchronized (System.out) {
-            System.out.println("PRODUCT: " + this.getLocalName());
-            Table table = new Table(new String[]{"Time", "Job", "Worker"});
+        synchronized (PlatformManager.getInstance().out()) {
+            PrintWriter out = PlatformManager.getInstance().out();
+            out.println("PRODUCT: " + this.getLocalName());
+            Table table = new Table(out, new String[]{"Time", "Job", "Worker"}, 50);
             for (Job j : this.scheduledJobs) {
                 Object[] row = null;
                 if (j instanceof Task) {
@@ -113,6 +108,7 @@ public class ProductAgent extends LoggableAgent {
                 table.addRow(row);
             }
             table.print();
+            out.flush();
         }
     }
 
@@ -150,6 +146,7 @@ public class ProductAgent extends LoggableAgent {
     @Override
     protected void takeDown() {
         log(Level.SEVERE, "Terminating");
+        printSchedule();
         PlatformManager.getInstance().registerProductTime(this.getEarliestTimeAvailable());
     }
 

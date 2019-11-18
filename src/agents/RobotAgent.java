@@ -8,9 +8,11 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import utils.LoggableAgent;
+import utils.PlatformManager;
 import utils.Point;
 import utils.Table;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
@@ -26,8 +28,6 @@ public class RobotAgent extends LoggableAgent {
     }
 
     protected void setup() {
-        addShutdownHook();
-
         this.bootstrapAgent(this);
 
         log(Level.SEVERE, "Created");
@@ -81,6 +81,7 @@ public class RobotAgent extends LoggableAgent {
     }
 
     protected void takeDown() {
+        printSchedule();
         // Deregister from the yellow pages
         try {
             DFService.deregister(this);
@@ -93,15 +94,17 @@ public class RobotAgent extends LoggableAgent {
 
     @Override
     public void printSchedule() {
-        synchronized (System.out) {
-            System.out.println("ROBOT: " + this.getLocalName());
-            Table table = new Table(new String[]{"Time", "Journey", "Product"}, 40);
+        synchronized (PlatformManager.getInstance().out()) {
+            PrintWriter out = PlatformManager.getInstance().out();
+            out.println("ROBOT: " + this.getLocalName());
+            Table table = new Table(out, new String[]{"Time", "Journey", "Product"}, 50);
             for (Journey j : this.scheduledJourneys) {
                 Object[] row = new Object[]{j.getStartTime() + "-" + j.getEndTime(), j.getStartPoint() + " -> " + j.getPickupPoint() + " -> " + j.getDropoffPoint(), j.getProductName()};
 
                 table.addRow(row);
             }
             table.print();
+            out.flush();
         }
     }
 

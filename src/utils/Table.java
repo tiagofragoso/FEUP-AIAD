@@ -1,5 +1,6 @@
 package utils;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 public class Table {
@@ -7,14 +8,17 @@ public class Table {
     private ArrayList<Object[]> rows = new ArrayList<>();
     private int COLUMN_SIZE = 30;
     private boolean striped = false;
+    private PrintWriter out;
 
-    public Table(String[] headers) {
+    public Table(PrintWriter out, String[] headers) {
         this.headers = headers;
+        this.out = out;
     }
 
-    public Table(String[] headers, int columnSize) {
+    public Table(PrintWriter out, String[] headers, int columnSize) {
         this.headers = headers;
         this.COLUMN_SIZE = columnSize;
+        this.out = out;
     }
 
     public void addRow(Object[] row) {
@@ -31,28 +35,28 @@ public class Table {
     }
 
     private void printHeader() {
-        for (int i = 0; i < headers.length * COLUMN_SIZE; i++) System.out.print("-");
-        System.out.println();
+        for (int i = 0; i < headers.length * COLUMN_SIZE; i++) out.print("-");
+        out.println();
 
         for (String header : headers) {
-            System.out.printf("%-" + COLUMN_SIZE + "s", header);
+            out.printf("%-" + COLUMN_SIZE + "s", header);
         }
-        System.out.println();
+        out.println();
 
-        for (int i = 0; i < headers.length * COLUMN_SIZE; i++) System.out.print("-");
-        System.out.println();
+        for (int i = 0; i < headers.length * COLUMN_SIZE; i++) out.print("-");
+        out.println();
     }
 
     private void printRows() {
         for (int i = 0; i < rows.size(); i++) {
             Object[] row = rows.get(i);
             for (Object o : row) {
-                System.out.printf("%-" + COLUMN_SIZE + "s", o.toString());
+                out.printf("%-" + COLUMN_SIZE + "s", o.toString());
             }
-            System.out.println();
+            out.println();
             if (striped || i == rows.size() - 1) {
-                for (int j = 0; j < headers.length * COLUMN_SIZE; j++) System.out.print("-");
-                System.out.println();
+                for (int j = 0; j < headers.length * COLUMN_SIZE; j++) out.print("-");
+                out.println();
             }
 
         }

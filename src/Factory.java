@@ -69,7 +69,7 @@ public class Factory {
                 Pair<HashMap<String, Integer>, Point> machine = machines.get(i);
                 StringBuilder strb = new StringBuilder();
                 for (Map.Entry<String, Integer> entry: machine.left.entrySet()) {
-                    strb.append(entry.getKey() + ":" + entry.getValue());
+                    strb.append(entry.getKey() + ":" + entry.getValue() + ";");
                 }
                 out.println("Machine " + i + ": " + strb.toString() + " | Location " + machine.right);
             }

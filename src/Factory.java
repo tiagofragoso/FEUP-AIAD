@@ -86,7 +86,7 @@ public class Factory {
         }
     }
 
-    private static void initJADE() {
+    public static void initJADE() {
         Runtime rt = Runtime.instance();
         Profile p1 = new ProfileImpl();
         ContainerController mainContainer = rt.createMainContainer(p1);
@@ -94,6 +94,21 @@ public class Factory {
         rt.shutDown();
     }
 
+    public static void setVariables(Point pickupPoint, Point dropoffPoint, ArrayList<Pair<HashMap<String, Integer>, Point>> machines, ArrayList<String[]> products, ArrayList<Pair<Integer, Point>> robots) {
+        Factory.pickupPoint = pickupPoint;
+        Factory.dropoffPoint = dropoffPoint;
+        Factory.machines = machines;
+        Factory.products = products;
+        Factory.robots = robots;
+        PlatformManager.getInstance().setProductCount(products.size());
+        final DateFormat df = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
+        try {
+            PlatformManager.getInstance().setOutputFile("logs/" + df.format(new Date(System.currentTimeMillis())) + ".log");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
 
 
     private static void setup(ContainerController mainContainer) {

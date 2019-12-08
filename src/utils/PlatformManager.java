@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 
 public class PlatformManager {
     private static PlatformManager instance = null;
-    private int maxTime = 0;
+    public int maxTime = 0;
     private int unfinishedProducts;
     private FileWriter out;
 
@@ -26,6 +26,10 @@ public class PlatformManager {
             System.out.println("Finished at " + maxTime);
             System.out.println("Press CTRL/CMD+C to exit\n");
         }
+    }
+
+    public boolean isFinished() {
+        return unfinishedProducts <= 0;
     }
 
     public void setProductCount(int unfinishedProducts) {

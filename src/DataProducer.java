@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -62,6 +63,9 @@ public class DataProducer {
         }
         int maxTime = PlatformManager.getInstance().maxTime;
          DecimalFormat df = new DecimalFormat("0.00");
+         DecimalFormatSymbols dfs = df.getDecimalFormatSymbols();
+         dfs.setDecimalSeparator('.');
+         df.setDecimalFormatSymbols(dfs);
         double occupation = PlatformManager.getInstance().machineTime / (double) numberMachines / maxTime * 100;
 
         printWriter.write(numberMachines+","+numberRobots+","+velocity+","+duration+",");

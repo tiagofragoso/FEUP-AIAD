@@ -55,7 +55,7 @@ public class RobotAgent extends LoggableAgent {
     }
 
     private void addShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(this::printSchedule));
+        //Runtime.getRuntime().addShutdownHook(new Thread(this::printSchedule));
     }
 
     public void scheduleJourney(Proposal proposal) {
@@ -78,6 +78,10 @@ public class RobotAgent extends LoggableAgent {
 
     public int getPickupDuration(Point pickupPoint) {
         return getLatestStartPoint().distanceTo(pickupPoint) / velocity;
+    }
+
+    public int getJourneyDuration(Point pickupPoint, Point dropoffPoint) {
+        return pickupPoint.distanceTo(dropoffPoint) / velocity;
     }
 
     protected void takeDown() {

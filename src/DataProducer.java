@@ -51,7 +51,7 @@ public class DataProducer {
     }
 
      private void run(int numberMachines, int numberRobots, int velocity, int duration) {
-        Factory.setVariables(pickup, dropoff, generateMachines(numberMachines, duration), generateProducts(), generateRobots(numberRobots, duration));
+        Factory.setVariables(pickup, dropoff, generateMachines(numberMachines, duration), generateProducts(), generateRobots(numberRobots, velocity));
         Factory.initJADE();
         while(!PlatformManager.getInstance().isFinished()){
             try {

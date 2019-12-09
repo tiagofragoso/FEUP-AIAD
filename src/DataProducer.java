@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -25,7 +26,7 @@ public class DataProducer {
         try {
             dataProducer.openFile();
         } catch (IOException e) {
-            return;
+            e.printStackTrace();
         }
 
         int numberMachines = Integer.parseInt(args[0]);
@@ -33,11 +34,10 @@ public class DataProducer {
         int velocity = Integer.parseInt(args[2]);
         int duration = Integer.parseInt(args[3]);
         dataProducer.run(numberMachines, numberRobots, velocity, duration);
-        //dataProducer.produceData(2);
     }
 
     private void openFile() throws IOException {
-        File file= new File ("logs/rapidData.csv");
+        File file= new File ("../logs/rapidData.csv");
         FileWriter fw;
         if (file.exists()){
             fw = new FileWriter(file,true);
@@ -60,50 +60,24 @@ public class DataProducer {
                 e.printStackTrace();
             }
         }
-         printWriter.write(numberMachines+","+numberRobots+","+velocity+","+duration+",");
-        printWriter.write(PlatformManager.getInstance().maxTime+",\n");
+        int maxTime = PlatformManager.getInstance().maxTime;
+         DecimalFormat df = new DecimalFormat("0.00");
+        double occupation = PlatformManager.getInstance().machineTime / (double) numberMachines / maxTime * 100;
+
+        printWriter.write(numberMachines+","+numberRobots+","+velocity+","+duration+",");
+        printWriter.write(maxTime+","+ df.format(occupation) +"\n");
         printWriter.close();
-    }
-
-    private void produceData(int range) {
-
-        printWriter.write("numberMachines,numberRobots,robotVelocity,taskDuration,totalTime,machineOccupation,\n");
-
-        for (int i = 1; i <= range; i++) {
-
-            for (int j = 1; j <= range; j++) {
-
-                for (int k = 1; k <= range; k++) {
-
-                    for (int l = 1; l <= range; l++) {
-
-                        printWriter.write(i+","+j+","+k+","+l+",");
-                        Factory.setVariables(pickup, dropoff, generateMachines(i, l), generateProducts(), generateRobots(j, k));
-                        Factory.initJADE();
-                        while(!PlatformManager.getInstance().isFinished()){
-                            try {
-                                TimeUnit.SECONDS.sleep(1);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        printWriter.write(PlatformManager.getInstance().maxTime+",\n");
-                        PlatformManager.getInstance().maxTime = 0;
-                    }
-                }
-            }
-        }
-
-        printWriter.close();
-
+        System.exit(0);
     }
 
     private ArrayList<String[]> generateProducts() {
         ArrayList<String[]> products = new ArrayList<>();
-        String[] processes = {"A", "B", "C"};
-        products.add(processes);
-        products.add(processes);
-        products.add(processes);
+        String[] processes0 = {"A", "B"};
+        String[] processes1 = {"B", "C", "D"};
+        String[] processes2 = {"C", "E", "A", "B", "D"};
+        products.add(processes0);
+        products.add(processes1);
+        products.add(processes2);
         return products;
     }
 
@@ -115,6 +89,8 @@ public class DataProducer {
         processes.put("A", duration);
         processes.put("B", duration);
         processes.put("C", duration);
+        processes.put("D", duration);
+        processes.put("E", duration);
         for (int i = 0; i < number; i++) {
             machines.add(new Pair<>(processes, new Point(i*widthIncrement, ((i+1)*heightIncrement) % height)));
         }

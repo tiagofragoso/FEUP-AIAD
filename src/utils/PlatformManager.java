@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 public class PlatformManager {
     private static PlatformManager instance = null;
     public int maxTime = 0;
+    public int machineTime = 0;
     private int unfinishedProducts;
     private FileWriter out;
 
@@ -26,6 +27,10 @@ public class PlatformManager {
             System.out.println("Finished at " + maxTime);
             System.out.println("Press CTRL/CMD+C to exit\n");
         }
+    }
+
+    synchronized public void registerTaskDuration(int duration) {
+        machineTime += duration;
     }
 
     public boolean isFinished() {

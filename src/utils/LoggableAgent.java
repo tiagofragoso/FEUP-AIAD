@@ -23,6 +23,6 @@ public abstract class LoggableAgent extends Agent implements Printable {
         if (severeOnly && level != Level.SEVERE) {
             return;
         }
-        //logger.log(level, msg);
+        logger.log(level, msg);
     }
 }

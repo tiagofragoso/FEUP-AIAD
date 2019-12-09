@@ -103,7 +103,7 @@ public class Factory {
         PlatformManager.getInstance().setProductCount(products.size());
         final DateFormat df = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
         try {
-            PlatformManager.getInstance().setOutputFile("logs/" + df.format(new Date(System.currentTimeMillis())) + ".log");
+            PlatformManager.getInstance().setOutputFile("../logs/" + df.format(new Date(System.currentTimeMillis())) + ".log");
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);

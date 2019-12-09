@@ -10,6 +10,7 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import utils.Loggable;
 import utils.LoggableAgent;
+import utils.PlatformManager;
 
 import java.util.logging.Level;
 
@@ -35,6 +36,7 @@ public class ScheduleTaskBehaviour extends CyclicBehaviour implements Loggable {
                     proposal.getProductStartTime() >= myAgent().getEarliestTimeAvailable()) {
 
                 myAgent().scheduleTask(proposal);
+                PlatformManager.getInstance().registerTaskDuration(proposal.getDuration());
 
                 reply.setPerformative(ACLMessage.INFORM);
 

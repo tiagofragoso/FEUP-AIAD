@@ -13,7 +13,7 @@ public class PlatformManager {
     private FileWriter out;
 
     public void setOutputFile(String fileName) throws IOException {
-        this.out = new FileWriter(fileName);
+        //this.out = new FileWriter(fileName);
     }
 
     public PrintWriter out() {

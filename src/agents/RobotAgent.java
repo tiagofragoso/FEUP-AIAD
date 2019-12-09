@@ -85,7 +85,7 @@ public class RobotAgent extends LoggableAgent {
     }
 
     protected void takeDown() {
-        printSchedule();
+        //printSchedule();
         // Deregister from the yellow pages
         try {
             DFService.deregister(this);

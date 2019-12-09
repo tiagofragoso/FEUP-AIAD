@@ -146,7 +146,7 @@ public class ProductAgent extends LoggableAgent {
     @Override
     protected void takeDown() {
         log(Level.SEVERE, "Terminating");
-        printSchedule();
+        //printSchedule();
         PlatformManager.getInstance().registerProductTime(this.getEarliestTimeAvailable());
     }
 

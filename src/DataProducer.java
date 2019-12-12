@@ -80,7 +80,19 @@ public class DataProducer {
         String[] processes1 = {"B", "C", "D"};
         String[] processes2 = {"C", "E", "A", "B", "D"};
         products.add(processes0);
+        products.add(processes0);
+        products.add(processes0);
+        products.add(processes0);
+        products.add(processes0);
         products.add(processes1);
+        products.add(processes1);
+        products.add(processes1);
+        products.add(processes1);
+        products.add(processes1);
+        products.add(processes2);
+        products.add(processes2);
+        products.add(processes2);
+        products.add(processes2);
         products.add(processes2);
         return products;
     }

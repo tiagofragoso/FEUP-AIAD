@@ -19,10 +19,12 @@ public class DataProducer {
     Point dropoff = new Point(30, 5);
     int width = 30;
     int height = 10;
+    String filename;
 
     public static void main(String[] args) {
 
         DataProducer dataProducer = new DataProducer();
+        dataProducer.filename = args[0];
 
         try {
             dataProducer.openFile();
@@ -30,15 +32,16 @@ public class DataProducer {
             e.printStackTrace();
         }
 
-        int numberMachines = Integer.parseInt(args[0]);
-        int numberRobots = Integer.parseInt(args[1]);
-        int velocity = Integer.parseInt(args[2]);
-        int duration = Integer.parseInt(args[3]);
+        int numberMachines = Integer.parseInt(args[1]);
+        int numberRobots = Integer.parseInt(args[2]);
+        int velocity = Integer.parseInt(args[3]);
+        int duration = Integer.parseInt(args[4]);
         dataProducer.run(numberMachines, numberRobots, velocity, duration);
     }
 
     private void openFile() throws IOException {
-        File file= new File ("../logs/rapidData.csv");
+        System.out.println(filename);
+        File file= new File ("../logs/" + filename);
         FileWriter fw;
         if (file.exists()){
             fw = new FileWriter(file,true);

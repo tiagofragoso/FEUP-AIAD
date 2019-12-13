@@ -11,7 +11,7 @@ while [[ "$i" -le 1 ]]; do
         while [[ "$k" -le 5 ]]; do
             l=$((5))
             while [[ "$l" -le 25 ]]; do
-                java -cp ../jade/lib/jade.jar:../out/production/FEUP-AIAD DataProducer $i $j $k $l
+                java -cp ../jade/lib/jade.jar:../out/production/FEUP-AIAD DataProducer rapidData.csv $i $j $k $l
                 rm ../logs/*.log
                 l=$(($l+1))
                 done
